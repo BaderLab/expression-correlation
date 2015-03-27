@@ -8,12 +8,14 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.TaskMonitor;
 
 import cern.colt.matrix.DoubleMatrix1D;
@@ -322,6 +324,8 @@ public class CorrelateSimilarityNetwork {
             colDone = true;
         
         cancel = false;
+        
+        serviceRegistrar.getService(CyNetworkManager.class).addNetwork(newNetwork);
         maybeCreateNetworkView(newNetwork);
 
         return newNetwork;
@@ -1123,7 +1127,7 @@ public class CorrelateSimilarityNetwork {
      * Create network view if number of nodes is below threshold.
      */
     @SuppressWarnings("unchecked")
-	private CyNetworkView maybeCreateNetworkView(final CyNetwork network) {
+	private void maybeCreateNetworkView(final CyNetwork network) {
 		final CyProperty<Properties> cyProperty = 
 				serviceRegistrar.getService(CyProperty.class, "(cyPropertyName=cytoscape3.props)");
 		final Properties props = cyProperty.getProperties();
@@ -1134,11 +1138,12 @@ public class CorrelateSimilarityNetwork {
 		} catch (Exception e) {
 		}
         
-        if (network.getNodeCount() < viewThreshold) {
+        if (network.getNodeCount() <= viewThreshold) {
         	final CyApplicationManager appMgr = serviceRegistrar.getService(CyApplicationManager.class);
-			return appMgr.getDefaultNetworkViewRenderer().getNetworkViewFactory().createNetworkView(network);
+			final CyNetworkView netView =
+					appMgr.getDefaultNetworkViewRenderer().getNetworkViewFactory().createNetworkView(network);
+			serviceRegistrar.getService(CyNetworkViewManager.class).addNetworkView(netView);
+			// TODO Apply preferred layout
         }
-        
-        return null;
 	}
 }
