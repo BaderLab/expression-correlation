@@ -127,8 +127,8 @@ public class CorrelateTask implements Task {
 		// Task can not currently be halted.
         network.cancel();
         System.out.println("User cancelled task.");
-        if (histogram!=null)
-        {
+        
+		if (histogram != null) {
             System.out.println("Disposing histogram dialog");
             histogram.dispose();
             histogram.setVisible(false);

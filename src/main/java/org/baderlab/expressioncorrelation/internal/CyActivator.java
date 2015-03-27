@@ -8,9 +8,9 @@ import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionT
 
 import java.util.Properties;
 
+import org.baderlab.expressioncorrelation.internal.action.AboutAction;
 import org.baderlab.expressioncorrelation.internal.action.CorrelateAction;
 import org.baderlab.expressioncorrelation.internal.action.HelpAction;
-import org.baderlab.expressioncorrelation.internal.view.AboutAction;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.osgi.framework.BundleContext;

@@ -7,6 +7,8 @@ import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionT
 import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionType.GENE_NET_PREVIEW;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -14,9 +16,11 @@ import javax.swing.JOptionPane;
 
 import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
+import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
 import org.baderlab.expressioncorrelation.internal.task.CorrelateTask;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -89,8 +93,18 @@ public class CorrelateAction extends AbstractCyAction {
             JOptionPane.showMessageDialog(parentFrame, "You must load an Expression Matrix File to run this plugin.", "ALERT!!!", JOptionPane.ERROR_MESSAGE);
         } else {
 // TODO: "Select the data table from the list:" (also show button to import new one)
-        	final CyTable table = globalTables.iterator().next(); // TODO
-        	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(table, serviceRegistrar);
+        	// TODO Test Data (get from UI) ####################################
+        	final CyTable table = globalTables.iterator().next();
+        	final String geneColumnName = "geneName";
+        	final List<String> condNameList = new ArrayList<>();
+        	for (final CyColumn col : table.getColumns()) {
+        		if (col.getName().endsWith("exp")) condNameList.add(col.getName());
+        	}
+        	final String[] conditionNames = condNameList.toArray(new String[condNameList.size()]);
+        	// #################################################################
+        	
+        	final ExpressionData data = new ExpressionData(table, geneColumnName, conditionNames);
+        	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
         	
             int colNumber = network.getNumberOfCols(); //number of conditions in the condition network
             int rowNumber = network.getNumberOfRows();

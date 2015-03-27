@@ -1,9 +1,10 @@
-package org.baderlab.expressioncorrelation.internal.view;
+package org.baderlab.expressioncorrelation.internal.action;
 
 import java.awt.event.ActionEvent;
 
 import javax.swing.JFrame;
 
+import org.baderlab.expressioncorrelation.internal.view.AboutDialog;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.service.util.CyServiceRegistrar;

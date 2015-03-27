@@ -28,8 +28,11 @@ import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
 import org.baderlab.expressioncorrelation.internal.task.CorrelateTask;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.work.FinishStatus;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.jmathplot.gui.Plot2DPanel;
 
@@ -150,7 +153,7 @@ public class CorrelateHistogramDialog extends JDialog {
         lowCutoffValue.setToolTipText(tipLow);
         cutoffs = network.getCutoffs(isRow);
         lowCutoffValue.setText(Double.toString(cutoffs[0]));
-        JLabel lowCutoff = new JLabel("Low Cutoff");
+        JLabel lowCutoff = new JLabel("Low Cutoff:");
 
         lowCheckBox = new JCheckBox("Low", false) {
         	@Override
@@ -190,7 +193,7 @@ public class CorrelateHistogramDialog extends JDialog {
         highCutoffValue.setToolTipText(tipHigh);
         cutoffs = network.getCutoffs(isRow);
         highCutoffValue.setText(Double.toString(cutoffs[1]));
-        JLabel highCutoff = new JLabel("High Cutoff");
+        JLabel highCutoff = new JLabel("High Cutoff:");
 
         highCheckBox = new JCheckBox("High", false) {
         	@Override
@@ -233,7 +236,7 @@ public class CorrelateHistogramDialog extends JDialog {
         interactionsValue.setToolTipText(tipSize);
         cutoffs = network.getCutoffs(isRow);
         interactionsValue.setText(Integer.toString(network.getNumberOfInteractions(isRow, cutoffs)));
-        JLabel size = new JLabel("Enter: ");
+        JLabel size = new JLabel("Enter:");
 
         JPanel labelFieldPanelsize = new JPanel(new FlowLayout(FlowLayout.RIGHT)) {
         	@Override
@@ -510,7 +513,6 @@ public class CorrelateHistogramDialog extends JDialog {
         }
 
 		@Override
-		@SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             dialog.dispose();
             
@@ -532,10 +534,16 @@ public class CorrelateHistogramDialog extends JDialog {
 
             // Execute Task via TaskManager
             final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
-            taskMgr.execute(new TaskIterator(task));
-            
-// TODO This is async now!!!
-            cutoffs = network.getCutoffs(isRow);
+            taskMgr.execute(new TaskIterator(task), new TaskObserver() {
+				@Override
+				public void taskFinished(ObservableTask task) {
+				}
+				@Override
+				public void allFinished(FinishStatus finishStatus) {
+					if (finishStatus.getType() == FinishStatus.Type.SUCCEEDED)
+						cutoffs = network.getCutoffs(isRow);
+				}
+			});
         }
     }
 
