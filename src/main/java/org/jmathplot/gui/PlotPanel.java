@@ -40,8 +40,9 @@ public abstract class PlotPanel extends JPanel
 
 	private static final long serialVersionUID = -208368220920306570L;
 	
-	public final static int ZOOM = 0;
-	public final static int TRANSLATION = 1;
+	public final static int NO_ACTION_MODE = -1;
+	public final static int ZOOM_MODE = 0;
+	public final static int TRANSLATION_MODE = 1;
 
 	public final static int LINEAR = Base.LINEAR;
 	public final static int LOG = Base.LOG;
@@ -67,12 +68,12 @@ public abstract class PlotPanel extends JPanel
 	protected Vector plots;
 	protected Vector objects;
 
-	public int ActionMode = ZOOM;
+	private int actionMode = ZOOM_MODE;
 
 	protected int[] mouseCurent = new int[2];
 	protected int[] mouseClick = new int[2];
 
-	public PlotToolBar toolBar;
+	protected PlotToolBar toolBar;
 
 	/////////////////////////////////////////////
 	//////// Constructor & inits ////////////////
@@ -102,8 +103,8 @@ public abstract class PlotPanel extends JPanel
 
 	private void initToolBar() {
 		toolBar = new PlotToolBar(this);
-		add(toolBar, BorderLayout.NORTH);
 		toolBar.setFloatable(false);
+		add(toolBar, BorderLayout.NORTH);
 	}
 
 	private void initPanel() {
@@ -123,11 +124,23 @@ public abstract class PlotPanel extends JPanel
 	//////// set actions ////////////////////////
 	/////////////////////////////////////////////
 
-	public void setActionMode(int am) {
-		ActionMode = am;
+	public int getActionMode() {
+		return actionMode;
+	}
+	
+	public void setActionMode(final int am) {
+		actionMode = am;
+		
+		toolBar.buttonGroup.setSelected(toolBar.buttonCenter.getModel(), am == PlotPanel.TRANSLATION_MODE);
+		toolBar.buttonGroup.setSelected(toolBar.buttonZoom.getModel(), am == PlotPanel.ZOOM_MODE);
+		
+		if (am == NO_ACTION_MODE) {
+			toolBar.buttonCenter.setVisible(false);
+			toolBar.buttonZoom.setVisible(false);
+		}
 	}
 
-	public void setNoteCoords(boolean b) {
+	public void setNoteCoords(final boolean b) {
 		if (b) {
 			for (int i = 0; i < plots.size(); i++) {
 				( (Plot) plots.get(i)).setNoteEachCoord(true);
@@ -137,6 +150,10 @@ public abstract class PlotPanel extends JPanel
 				( (Plot) plots.get(i)).setNoteEachCoord(false);
 			}
 		}
+	}
+	
+	public void setToolBarVisible(final boolean b) {
+		toolBar.setVisible(b);
 	}
 
 	/////////////////////////////////////////////
@@ -353,6 +370,7 @@ public abstract class PlotPanel extends JPanel
 
 	public void toGraphicFile(File file) {
 		// otherwise toolbar appears
+		final boolean isToolBarVisible = toolBar.isVisible();
 		toolBar.setVisible(false);
 		repaint();
 
@@ -367,7 +385,7 @@ public abstract class PlotPanel extends JPanel
 		g.dispose();
 
 		// make it reappear
-		toolBar.setVisible(true);
+		toolBar.setVisible(isToolBarVisible);
 		repaint();
 
 		try {
@@ -415,8 +433,8 @@ public abstract class PlotPanel extends JPanel
 			getPlot(i).tryNote(mouseCurent, comp);
 		}
 
-		switch (ActionMode) {
-			case ZOOM:
+		switch (actionMode) {
+			case ZOOM_MODE:
 				comp2D.setColor(Color.black);
 				comp2D.drawRect(Math.min(mouseClick[0], mouseCurent[0]), Math.min(mouseClick[1],
 					mouseCurent[1]),
@@ -442,8 +460,8 @@ public abstract class PlotPanel extends JPanel
 		mouseCurent[1] = e.getY();
 		e.consume();
 		int[] t;
-		switch (ActionMode) {
-			case TRANSLATION:
+		switch (actionMode) {
+			case TRANSLATION_MODE:
 				t = new int[] {mouseCurent[0] - mouseClick[0], mouseCurent[1] - mouseClick[1]};
 				base.translate(t);
 				mouseClick[0] = mouseCurent[0];
@@ -469,8 +487,8 @@ public abstract class PlotPanel extends JPanel
 		mouseClick[1] = mouseCurent[1];
 		int[] origin;
 		double[] ratio;
-		switch (ActionMode) {
-			case ZOOM:
+		switch (actionMode) {
+			case ZOOM_MODE:
 				if (e.getModifiers() == 16) {
 					origin = new int[] { (int) (mouseCurent[0] - panelSize[0] / 4),
 						 (int) (mouseCurent[1] - panelSize[1] / 4)};
@@ -491,8 +509,8 @@ public abstract class PlotPanel extends JPanel
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
 		e.consume();
-		switch (ActionMode) {
-			case ZOOM:
+		switch (actionMode) {
+			case ZOOM_MODE:
 				if ( (e.getModifiers() == 16) && (mouseCurent[0] != mouseClick[0]) &&
 					(mouseCurent[1] != mouseClick[1])) {
 					int[] origin = {Math.min(mouseClick[0], mouseCurent[0]), Math.min(mouseClick[1],

@@ -166,22 +166,24 @@ public class CorrelateTask implements Task {
     /**
      * The condition histogram calculation
      */
-    private void colHistogram() {
+    private void colHistogram() {// TODO Cannot be a Task with this
 		final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
 		
 		histogram = new CorrelateHistogramDialog(parentFrame, false, network, serviceRegistrar); // not-row histogram
 		histogram.pack();
+		histogram.setLocationRelativeTo(parentFrame);
 		histogram.setVisible(true);
     }
 
     /**
      * The gene histogram calculation
      */
-    private void rowHistogram() {
+    private void rowHistogram() {// TODO Cannot be a Task with this
 		final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
 		
 		histogram = new CorrelateHistogramDialog(parentFrame, true, network, serviceRegistrar); // row histogram
 		histogram.pack();
+		histogram.setLocationRelativeTo(parentFrame);
 		histogram.setVisible(true);
     }
 	

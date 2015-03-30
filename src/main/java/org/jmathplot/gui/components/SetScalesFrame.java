@@ -2,7 +2,9 @@ package org.jmathplot.gui.components;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
+
 import org.jmathplot.gui.*;
 import org.jmathplot.gui.plotObjects.*;
 
@@ -180,46 +182,52 @@ public class SetScalesFrame extends JFrame {
 
 		private void setListeners() {
 			title_field.addKeyListener(new KeyListener() {
+				@Override
 				public void keyReleased(KeyEvent e) {
 					setTitle();
 				}
-
+				@Override
 				public void keyPressed(KeyEvent e) {}
-
+				@Override
 				public void keyTyped(KeyEvent e) {}
 			});
 
 			log_check.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					setScale();
 				}
 			});
 			linear_check.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					setScale();
 				}
 			});
 
 			min_field.addKeyListener(new KeyListener() {
+				@Override
 				public void keyReleased(KeyEvent e) {
 					setBounds();
 				}
-
+				@Override
 				public void keyPressed(KeyEvent e) {}
-
+				@Override
 				public void keyTyped(KeyEvent e) {}
 			});
 			max_field.addKeyListener(new KeyListener() {
+				@Override
 				public void keyReleased(KeyEvent e) {
 					setBounds();
 				}
-
+				@Override
 				public void keyPressed(KeyEvent e) {}
-
+				@Override
 				public void keyTyped(KeyEvent e) {}
 			});
 
 			bounds_auto.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					setBoundsAuto();
 				}

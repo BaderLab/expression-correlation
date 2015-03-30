@@ -1,9 +1,17 @@
 package org.jmathplot.gui.components;
 
-import java.security.*;
-import java.awt.event.*;
-import javax.swing.*;
-import org.jmathplot.gui.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.security.AccessControlException;
+
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+
+import org.jmathplot.gui.PlotPanel;
 
 /**
  * Allow a separate floatable toolbar which can
@@ -16,14 +24,13 @@ import org.jmathplot.gui.*;
  * @version 1.0
  */
 
-public class PlotToolBar
-	extends JToolBar {
+public class PlotToolBar extends JToolBar {
 
-	//private int actionMode;
+	private static final long serialVersionUID = -5529481567586878489L;
 
-	protected ButtonGroup buttonGroup;
-	protected JToggleButton buttonCenter;
-	protected JToggleButton buttonZoom;
+	public ButtonGroup buttonGroup;
+	public JToggleButton buttonCenter;
+	public JToggleButton buttonZoom;
 	protected JToggleButton buttonRotate;
 	protected JToggleButton buttonViewCoords;
 	protected JButton buttonSetScales;
@@ -48,60 +55,40 @@ public class PlotToolBar
 
 		buttonGroup = new ButtonGroup();
 
+		buttonCenter = new JToggleButton("Pan Mode", plotPanel.getActionMode() == PlotPanel.TRANSLATION_MODE);
+		buttonCenter.setToolTipText("Click and drag to pan the chart");
 
-	//	buttonCenter = new JToggleButton("Center",new ImageIcon("icons\\center.png")); //jmathplot\gui\icons
-	//	buttonCenter.setToolTipText("Center axes");
+		buttonZoom = new JToggleButton("Zoom Mode", plotPanel.getActionMode() == PlotPanel.ZOOM_MODE);
+		buttonZoom.setToolTipText(
+				"<html><b>Left-Click</b> and drag to zoom in.<br />" +
+				"<b>Rigth-Click</b> to zoom out.</html>"
+		);
 
-		buttonZoom = new JToggleButton("Zoom",new ImageIcon("icons\\zoom.png"));
-		buttonZoom.setToolTipText("Zoom");
+		buttonSaveGraphic = new JButton("Export");
+		buttonSaveGraphic.setToolTipText("Save graphics to a .PNG File");
 
-//		buttonViewCoords = new JToggleButton("View", new ImageIcon("icons\\position.png"));
-//		buttonViewCoords.setToolTipText("View coordinates / View entire plot");
-
-//		buttonSetScales = new JButton("Scales",new ImageIcon("icons\\scale.png"));
-//		buttonSetScales.setToolTipText("Set scales");
-
-//		buttonDatas = new JButton("Get datas",new ImageIcon("icons\\data.png"));
-//		buttonDatas.setToolTipText("Get datas");
-
-		buttonSaveGraphic = new JButton("Save", new ImageIcon("icons\\tofile.png"));
-		buttonSaveGraphic.setToolTipText("Save graphics in a .PNG File");
-
-		buttonReset = new JButton("Reset",new ImageIcon("icons\\back.png"));
+		buttonReset = new JButton("Reset");
 		buttonReset.setToolTipText("Reset axes");
 
-		buttonZoom.setSelected(true);
 		buttonZoom.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-				plotPanel.ActionMode = PlotPanel.ZOOM;
+				plotPanel.setActionMode(PlotPanel.ZOOM_MODE);
 			}
 		});
-	/*	buttonCenter.addActionListener(new ActionListener() {
+		buttonCenter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				plotPanel.ActionMode = PlotPanel.TRANSLATION;
+				plotPanel.setActionMode(PlotPanel.TRANSLATION_MODE);
 			}
-		});*/
-/*		buttonViewCoords.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				plotPanel.setNoteCoords(buttonViewCoords.isSelected());
-			}
-		});*/
-	/*	buttonSetScales.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				plotPanel.displaySetScalesFrame();
-			}
-		});*/
-	/*	buttonDatas.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				plotPanel.displayDatasFrame();
-			}
-		});*/
+		});
 		buttonSaveGraphic.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				chooseFile();
 			}
 		});
 		buttonReset.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				plotPanel.resetBase();
 			}
@@ -110,16 +97,15 @@ public class PlotToolBar
 		buttonGroup.add(buttonCenter);
 		buttonGroup.add(buttonZoom);
 
-	//	add(buttonCenter, null);
-		add(buttonZoom, null);
-	//	add(buttonViewCoords, null);
-	//	add(buttonSetScales, null);
-		add(buttonSaveGraphic, null);
-	//	add(buttonDatas, null);
-		add(buttonReset, null);
+		add(buttonCenter);
+		add(buttonZoom);
+		add(Box.createHorizontalGlue());
+		add(buttonSaveGraphic);
+		add(buttonReset);
 
 		if (!denySaveSecurity) {
 			fileChooser.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					saveFile();
 				}
@@ -127,37 +113,6 @@ public class PlotToolBar
 		} else {
 			buttonSaveGraphic.setEnabled(false);
 		}
-
-		// allow mixed (2D/3D) plots managed by one toolbar
-		/*if (plotPanel instanceof Plot3DPanel) {
-			if (buttonRotate == null) {
-				buttonRotate = new JToggleButton(new ImageIcon(PlotPanel.class.
-					       getResource("icons/rotation.png")));
-				buttonRotate.setToolTipText("Rotate axes");
-
-				buttonRotate.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						plotPanel.ActionMode = Plot3DPanel.ROTATION;
-					}
-				});
-				buttonGroup.add(buttonRotate);
-				add(buttonRotate, null, 2);
-			} else {
-				buttonRotate.setEnabled(true);
-			}
-		} else {
-			if (buttonRotate != null) {
-				// no removal/disabling just disable
-				if (plotPanel.ActionMode == Plot3DPanel.ROTATION) {
-					plotPanel.ActionMode = PlotPanel.ZOOM;
-				}
-				buttonRotate.setEnabled(false);
-			}
-		}*/
-	}
-
-	public int getActionMode() {
-		return plotPanel.ActionMode;
 	}
 
 	public PlotPanel getPlotPanel() {

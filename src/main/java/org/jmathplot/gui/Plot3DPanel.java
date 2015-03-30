@@ -1,15 +1,25 @@
 package org.jmathplot.gui;
 
 
-import java.awt.*;
-import java.awt.event.*;
-import org.jmathplot.gui.plotObjects.*;
-import org.jmathplot.gui.plots.*;
-import org.jmathplot.util.*;
+import java.awt.Color;
+import java.awt.event.MouseEvent;
 
-public class Plot3DPanel
-	extends PlotPanel {
+import org.jmathplot.gui.plotObjects.Base;
+import org.jmathplot.gui.plotObjects.Base3D;
+import org.jmathplot.gui.plotObjects.Grid;
+import org.jmathplot.gui.plots.BarPlot;
+import org.jmathplot.gui.plots.BoxPlot3D;
+import org.jmathplot.gui.plots.HistogramPlot3D;
+import org.jmathplot.gui.plots.LinePlot;
+import org.jmathplot.gui.plots.Plot;
+import org.jmathplot.gui.plots.ScatterPlot;
+import org.jmathplot.gui.plots.StaircasePlot;
+import org.jmathplot.util.DoubleArray;
 
+public class Plot3DPanel extends PlotPanel {
+
+	private static final long serialVersionUID = -282015410572064503L;
+	
 	public final static int ROTATION = 2;
 
 	public Plot3DPanel() {
@@ -41,6 +51,7 @@ public class Plot3DPanel
 			"X", "Y", "Z"});
 	}
 
+	@Override
 	public void initBasenGrid() {
 		initBasenGrid(new double[] {
 			0, 0, 0}
@@ -53,6 +64,7 @@ public class Plot3DPanel
 			Xlabel, Ylabel, Zlabel});
 	}
 
+	@Override
 	public void addPlot(double[][] XY, String name, String type, Color c) {
 		Plot newPlot = null;
 		if (type.equals("SCATTER")) {
@@ -81,13 +93,14 @@ public class Plot3DPanel
 		addPlot(newPlot);
 	}
 
+	@Override
 	public void mouseDragged(MouseEvent e) {
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
 		e.consume();
 		int[] t;
-		switch (ActionMode) {
-			case TRANSLATION:
+		switch (getActionMode()) {
+			case TRANSLATION_MODE:
 				t = new int[] {mouseCurent[0] - mouseClick[0], mouseCurent[1] - mouseClick[1]};
 				base.translate(t);
 				mouseClick[0] = mouseCurent[0];

@@ -5,8 +5,9 @@ import org.jmathplot.gui.plotObjects.*;
 import org.jmathplot.gui.plots.*;
 import org.jmathplot.util.*;
 
-public class Plot2DPanel
-	extends PlotPanel {
+public class Plot2DPanel extends PlotPanel {
+
+	private static final long serialVersionUID = 7770847592141979057L;
 
 	public Plot2DPanel() {
 		super();
@@ -49,6 +50,7 @@ public class Plot2DPanel
 			Xlabel, Ylabel});
 	}
 
+	@Override
 	public void addPlot(double[][] XY, String name, String type, Color c) {
 		Plot newPlot = null;
 		if (type.equals("SCATTER")) {
@@ -82,5 +84,4 @@ public class Plot2DPanel
 		new FrameView(p2d);
 		p2d.addPlot(DoubleArray.random(10, 2), "plot 2", PlotPanel.SCATTER);
 	}
-
 }
