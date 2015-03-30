@@ -12,9 +12,10 @@ import org.jmathplot.gui.plotObjects.*;
  * @version 3.0
  */
 
-public class SetScalesFrame
-	extends JFrame {
+public class SetScalesFrame extends JFrame {
 
+	private static final long serialVersionUID = -2366396762066112355L;
+	
 	private PlotPanel plotPanel;
 	private JPanel panel;
 
@@ -43,19 +44,10 @@ public class SetScalesFrame
 		}
 	}
 
-	private void buildConstraints(GridBagConstraints gbc, int gx, int gy, int gw,
-		int gh, int wx, int wy) {
-		gbc.gridx = gx;
-		gbc.gridy = gy;
-		gbc.gridwidth = gw;
-		gbc.gridheight = gh;
-		gbc.weightx = wx;
-		gbc.weighty = wy;
-	}
+	public class ScalePanel extends JPanel {
 
-	public class ScalePanel
-		extends JPanel {
-
+		private static final long serialVersionUID = 7167614656051518359L;
+		
 		private PlotPanel plotPanel;
 		private int numAxe;
 
@@ -177,8 +169,7 @@ public class SetScalesFrame
 			this.add(bounds_auto);
 		}
 
-		private void buildConstraints(GridBagConstraints gbc, int gx, int gy,
-			int gw, int gh, int wx, int wy) {
+		private void buildConstraints(GridBagConstraints gbc, int gx, int gy, int gw, int gh, int wx, int wy) {
 			gbc.gridx = gx;
 			gbc.gridy = gy;
 			gbc.gridwidth = gw;
@@ -233,7 +224,6 @@ public class SetScalesFrame
 					setBoundsAuto();
 				}
 			});
-
 		}
 
 		public void toCommandLine(String s) {
@@ -245,12 +235,10 @@ public class SetScalesFrame
 		}
 
 		private void setTitle() {
-//      System.out.println("title setting n�" + numAxe + " : " + title_field.getText());
 			plotPanel.setAxeLabel(numAxe, title_field.getText());
 		}
 
 		private void setBounds() {
-//      System.out.println("bounds setting n�" + numAxe + " : " + min_field.getText() + " - " + max_field.getText());
 			try {
 				plotPanel.setFixedBounds(numAxe, Double.parseDouble(min_field.getText()),
 					Double.parseDouble(max_field.getText()));
@@ -265,7 +253,6 @@ public class SetScalesFrame
 		}
 
 		private void setScale() {
-//      System.out.println("scale setting n�" + numAxe + " : " + ( (log_check.isSelected()) ? ("LOG") : ("LINEAR")));
 			try {
 				plotPanel.setAxeScale(numAxe, (log_check.isSelected()) ? (Base.LOG) :
 					(Base.LINEAR));
@@ -282,7 +269,6 @@ public class SetScalesFrame
 		private void setBoundsAuto() {
 			plotPanel.setAutoBounds(numAxe);
 			updateBoundsFields();
-//      System.out.println("auto-Bounds setting n�"+numAxe+" : "+plotPanel.getBase().getMinBounds()[numAxe]+" - "+plotPanel.getBase().getMaxBounds()[numAxe]);
 		}
 
 		private void updateBoundsFields() {
@@ -291,7 +277,5 @@ public class SetScalesFrame
 			min_field.setText("" + min);
 			max_field.setText("" + max);
 		}
-
 	}
-
 }

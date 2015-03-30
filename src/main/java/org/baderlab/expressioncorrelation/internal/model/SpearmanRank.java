@@ -110,10 +110,8 @@ public class SpearmanRank {
 			rankInfoList.add(rr1);
 		}
 
-        System.out.println("rankInfoList contains: " + rankInfoList.size() + " number of RankInfos");
         Algebra A = new Algebra();
         distanceMatrix = Statistic.distance(A.transpose(rdata),Statistic.EUCLID);
-        System.out.println("The distance matrix is: " + distanceMatrix.rows() + " rows by " + distanceMatrix.columns() + "columns");
     }
 	
 	/**
@@ -156,6 +154,7 @@ public class SpearmanRank {
 		double p = (1.0 - (6.0/en3n)*(d1+(sf+sg)/12.0))/Math.sqrt(fac);
 		*/
         double p = 1.0 - (6.0 * d1)/(en3n-n);
+        
         return p;
 	}
 	

@@ -14,6 +14,7 @@ public class Base3D extends Base {
 		setBaseCoords();
 	}
 
+	@Override
 	protected double[] baseCoordsScreenProjectionRatio(double[] xyz) {
 		double factor = 1.7;
 		double[] sC = new double[2];
@@ -24,8 +25,7 @@ public class Base3D extends Base {
 					+ (Math.cos(phi)*((xyz[2]-(Xmax[2]+Xmin[2])/2)/(Xmax[2]-Xmin[2]))
 					- Math.sin(phi)*Math.cos(theta)*((xyz[0]-(Xmax[0]+Xmin[0])/2)/(Xmax[0]-Xmin[0]))
 					- Math.sin(phi)*Math.sin(theta)*((xyz[1]-(Xmax[1]+Xmin[1])/2)/(Xmax[1]-Xmin[1])))/factor;
-		//System.out.println("Theta = " + theta + " Phi = " + phi);
-		//System.out.println("(" + xyz[0] +"," + xyz[1] +"," + xyz[2] + ") -> (" + sC[0] + "," + sC[1] + ")");
+		
 		return sC;
 	}
 
@@ -34,5 +34,4 @@ public class Base3D extends Base {
 		phi = phi + ((double)screenTranslation[1])/100;
 		setBaseCoords();
 	}
-
 }

@@ -702,7 +702,6 @@ public class CorrelateSimilarityNetwork {
 
                 if (i != j) {
                     int binNumber = (int) ((corr + 1) * (((double) bins - 1) / 2));
-                    //System.out.println("corr="+corr+" bin="+binNumber);
                     histo[binNumber]++;
                 }
                 

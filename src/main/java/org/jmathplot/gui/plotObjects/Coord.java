@@ -30,6 +30,7 @@ public abstract class Coord implements CommandLinePrintable {
 		}
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer s = new StringBuffer("(");
 		for (int i = 0; i < plotCoord.length-1;i++) {
@@ -39,13 +40,12 @@ public abstract class Coord implements CommandLinePrintable {
 		return(s.toString());
 	}
 
+	@Override
 	public void toCommandLine(String title) {
 		StringBuffer s = new StringBuffer(title).append(" : (");
 		for (int i = 0; i < plotCoord.length-1;i++) {
 			s.append(this.getPlotCoordCopy()[i]).append(",");
 		}
 		s.append(this.getPlotCoordCopy()[plotCoord.length-1]).append(") -> ["+getScreenCoordCopy()[0]+","+getScreenCoordCopy()[1]+"]");
-		System.out.println(s.toString());
 	}
-
 }

@@ -9,8 +9,7 @@ import java.util.*;
  * @version 3.0
  */
 
-public class ASCIIFile
-	extends DataFile {
+public class ASCIIFile extends DataFile {
 
 	public ASCIIFile(File f) {
 		super(f);

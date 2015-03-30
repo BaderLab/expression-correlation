@@ -1,21 +1,45 @@
 package org.jmathplot.gui;
 
-import java.io.*;
-import java.util.*;
-import javax.imageio.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import javax.swing.*;
-import org.jmathplot.gui.components.*;
-import org.jmathplot.gui.plotObjects.*;
-import org.jmathplot.gui.plots.*;
-import org.jmathplot.util.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
 
-public abstract class PlotPanel
-	extends JPanel
-	implements MouseListener, MouseMotionListener, ComponentListener, BaseScalesDependant {
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
+import org.jmathplot.gui.components.DatasFrame;
+import org.jmathplot.gui.components.PlotToolBar;
+import org.jmathplot.gui.components.SetScalesFrame;
+import org.jmathplot.gui.plotObjects.Base;
+import org.jmathplot.gui.plotObjects.BaseScalesDependant;
+import org.jmathplot.gui.plotObjects.Coord;
+import org.jmathplot.gui.plotObjects.Grid;
+import org.jmathplot.gui.plotObjects.Plotable;
+import org.jmathplot.gui.plotObjects.RelativeCoord;
+import org.jmathplot.gui.plots.Plot;
+import org.jmathplot.util.DoubleArray;
+
+public abstract class PlotPanel extends JPanel
+								implements MouseListener, MouseMotionListener, ComponentListener, BaseScalesDependant {
+
+	private static final long serialVersionUID = -208368220920306570L;
+	
 	public final static int ZOOM = 0;
 	public final static int TRANSLATION = 1;
 
@@ -247,6 +271,7 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void updateBase() {
 		base.setBaseCoords();
 		grid.updateBase();
@@ -327,7 +352,6 @@ public abstract class PlotPanel
 	/////////////////////////////////////////////
 
 	public void toGraphicFile(File file) {
-		
 		// otherwise toolbar appears
 		toolBar.setVisible(false);
 		repaint();
@@ -369,6 +393,7 @@ public abstract class PlotPanel
 	//////// Paint method ///////////////////////
 	/////////////////////////////////////////////
 
+	@Override
 	public void paint(Graphics comp) {
 		Graphics2D comp2D = (Graphics2D) comp;
 
@@ -411,6 +436,7 @@ public abstract class PlotPanel
 	//////// Listeners //////////////////////////
 	/////////////////////////////////////////////
 
+	@Override
 	public void mouseDragged(MouseEvent e) {
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
@@ -427,12 +453,14 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		mouseClick[0] = e.getX();
 		mouseClick[1] = e.getY();
 		e.consume();
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
@@ -458,6 +486,7 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
@@ -481,10 +510,13 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent e) {}
 
+	@Override
 	public void mouseExited(MouseEvent e) {}
 
+	@Override
 	public void mouseMoved(MouseEvent e) {
 		mouseCurent[0] = e.getX();
 		mouseCurent[1] = e.getY();
@@ -494,10 +526,13 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void componentHidden(ComponentEvent e) {}
 
+	@Override
 	public void componentMoved(ComponentEvent e) {}
 
+	@Override
 	public void componentResized(ComponentEvent e) {
 		panelSize = new int[] { (int) (this.getSize().getWidth()), (int) (this.getSize().getHeight())};
 		base.setPanelSize(panelSize);
@@ -505,6 +540,7 @@ public abstract class PlotPanel
 		repaint();
 	}
 
+	@Override
 	public void componentShown(ComponentEvent e) {}
 
 }

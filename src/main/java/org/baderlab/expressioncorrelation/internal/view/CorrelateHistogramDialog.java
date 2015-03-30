@@ -147,7 +147,7 @@ public class CorrelateHistogramDialog extends JDialog {
         };
 
         lowCutoffValue.setColumns(4); // 3 + space for the neative sign
-        lowCutoffValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.formattedTextFieldAction());
+        lowCutoffValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.FormattedTextFieldAction());
         String tipLow = "Look at the Histogram and set the low cutoff for the network that you want displayed.\n" +
                 "Or deselect the checkbox if you do not want a low cutoff value";
         lowCutoffValue.setToolTipText(tipLow);
@@ -161,7 +161,7 @@ public class CorrelateHistogramDialog extends JDialog {
                 return new JMultiLineToolTip();
             }
         };
-        lowCheckBox.addItemListener(new CorrelateHistogramDialog.lowCheckBoxAction());
+        lowCheckBox.addItemListener(new CorrelateHistogramDialog.LowCheckBoxAction());
         lowCheckBox.setToolTipText("If checked, allows you to set the low cutoff value. \n" +
                 "If not, a low cuttof value will not be used in the percent calculation");
         lowCheckBox.setSelected(true);
@@ -187,7 +187,7 @@ public class CorrelateHistogramDialog extends JDialog {
         };
 
         highCutoffValue.setColumns(3);
-        highCutoffValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.formattedTextFieldAction());
+        highCutoffValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.FormattedTextFieldAction());
         String tipHigh = "Look at the Histogram and set the high cutoff for the network that you want displayed.\n" +
                 "Or deselect the checkbox if you do not want a high cutoff value";
         highCutoffValue.setToolTipText(tipHigh);
@@ -201,7 +201,7 @@ public class CorrelateHistogramDialog extends JDialog {
                 return new JMultiLineToolTip();
             }
         };
-        highCheckBox.addItemListener(new CorrelateHistogramDialog.highCheckBoxAction());
+        highCheckBox.addItemListener(new CorrelateHistogramDialog.HighCheckBoxAction());
         highCheckBox.setToolTipText("If checked, allows you to set the high cutoff value. \n" +
                 "If not, a high cuttof value will not be used in the percent calculation");
         highCheckBox.setSelected(true);
@@ -218,7 +218,6 @@ public class CorrelateHistogramDialog extends JDialog {
         labelFieldPanelHigh.add(highCheckBox);			//Adds check box
         cutOfSubPanel.add(labelFieldPanelHigh, BorderLayout.EAST);
 
-
         //Number of interactions versus percent of interactions options
         JPanel Interactions = new JPanel(new BorderLayout(25, 4));
 
@@ -230,7 +229,7 @@ public class CorrelateHistogramDialog extends JDialog {
         };
 
         interactionsValue.setColumns(6);
-        interactionsValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.formattedTextFieldAction());
+        interactionsValue.addPropertyChangeListener("value", new CorrelateHistogramDialog.FormattedTextFieldAction());
         String tipSize = "Select either the number of interactions you want displayed.\n" +
                 "Or the percent of interactions you want diplayed";
         interactionsValue.setToolTipText(tipSize);
@@ -255,7 +254,7 @@ public class CorrelateHistogramDialog extends JDialog {
         percentNumberComboBox = new JComboBox<>();
         percentNumberComboBox.addItem("Number of Interactions");
         percentNumberComboBox.addItem("Percent of Interactions");
-        percentNumberComboBox.addItemListener(new CorrelateHistogramDialog.percentNumberComboBox_Action());
+        percentNumberComboBox.addItemListener(new CorrelateHistogramDialog.PercentNumberComboBoxAction());
         percentNumberComboBox.setToolTipText(tipInteractions);
 
         JPanel labelFieldPanelPercentNumber = new JPanel(new FlowLayout(FlowLayout.LEFT)) {
@@ -301,8 +300,7 @@ public class CorrelateHistogramDialog extends JDialog {
 
         if (valueLow != null) {
             value = -valueLow.doubleValue();
-            System.out.println("The low in the box is: " + value);
-            //System.out.println("The low value in the text: "+ value);
+            
             if ((value < 0) && (value >= -1)) {
                 if (isRow)
                     network.setRowNegCutoff(value);
@@ -311,7 +309,6 @@ public class CorrelateHistogramDialog extends JDialog {
 
                 getSet();
                 cutoffs = network.getCutoffs(isRow);
-                System.out.println("Low change: " + isRow + " | " + cutoffs[0] + " + " + cutoffs[1]);
                 lowCutoffValue.setText(Double.toString(cutoffs[0]));
             }
         }
@@ -325,11 +322,9 @@ public class CorrelateHistogramDialog extends JDialog {
     public void highGetSet() {
         double value;
         valueHigh = (Number) highCutoffValue.getValue();
-        System.out.println("I am in HIGH");
         
         if (valueHigh != null) {
             value = valueHigh.doubleValue();
-            System.out.println("The high in the box is: " + value);
             
             if ((value > 0) && (value <= 1)) {
                 if (isRow)
@@ -339,7 +334,6 @@ public class CorrelateHistogramDialog extends JDialog {
 
                 getSet();
                 cutoffs = network.getCutoffs(isRow);
-                System.out.println("High change: " + isRow + " | " + cutoffs[0] + " + " + cutoffs[1]);
                 highCutoffValue.setText(Double.toString(cutoffs[1]));
             }
         }
@@ -353,11 +347,9 @@ public class CorrelateHistogramDialog extends JDialog {
         selectedString = (String) percentNumberComboBox.getSelectedItem();
         
         if (selectedString.equals("Number of Interactions")) {
-            System.out.println("Number of interactions cutoffs: " + cutoffs[0] + " | " + cutoffs[1]);
             interactionsValue.setText(Integer.toString(network.getNumberOfInteractions(isRow, cutoffs)));
         } else if (selectedString.equals("Percent of Interactions")) {
             interactionsValue.setText(Double.toString(network.getPercentOfInteractions(isRow, cutoffs)));
-            System.out.println("Percent of interactions cutoffs: " + cutoffs[0] + " | " + cutoffs[1]);
         }
     }
 
@@ -376,10 +368,8 @@ public class CorrelateHistogramDialog extends JDialog {
             intValue = valueInteractions.intValue();
             
             if (intValue >= 0) {
-                System.out.println("The intValue: " + intValue);
                 network.setCutoffsInteractions(isRow, intValue);
                 cutoffs = network.getCutoffs(isRow);
-                System.out.println("Interactions cutoffs are:" + cutoffs[0] + " " + cutoffs[1]);
                 lowCutoffValue.setText(Double.toString(cutoffs[0]));
                 highCutoffValue.setText(Double.toString(cutoffs[1]));
                 getSet();
@@ -402,38 +392,38 @@ public class CorrelateHistogramDialog extends JDialog {
     }
 
     /**
-     * Listens to chages in any of the windows
+     * Listens to changes in any of the windows
      * redirects action depending on change
      */
-    private class formattedTextFieldAction implements PropertyChangeListener {
+    private class FormattedTextFieldAction implements PropertyChangeListener {
     	
     	@Override
         public void propertyChange(PropertyChangeEvent e) {
             Object source = e.getSource();
-            if (source == lowCutoffValue) {
+            
+            if (source == lowCutoffValue)
                 lowGetSet();
-            } else if (source == highCutoffValue) {
+            else if (source == highCutoffValue)
                 highGetSet();
-            } else if (source == interactionsValue) {
+            else if (source == interactionsValue)
                 interactionsGetSet();
-            }
         }
     }
 
     /**
-     * Listens to chages in checkbox state
+     * Listens to changes in checkbox state
      * sets whether to use or not the negative cutoffs in creating the network
      */
-    private class lowCheckBoxAction implements ItemListener {
+    private class LowCheckBoxAction implements ItemListener {
         
     	@Override
         public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.DESELECTED) {
-                if (isRow) {
+                if (isRow)
                     network.setRowNegUse(false);
-                } else {
+                else
                     network.setColNegUse(false);
-                }
+                
                 getSet();
                 lowCutoffValue.setEnabled(false);
             } else {
@@ -441,18 +431,20 @@ public class CorrelateHistogramDialog extends JDialog {
                     network.setRowNegUse(true);
                 else
                     network.setColNegUse(true);
+               
                 if (interactionsValue != null)
                     getSet();
+                
                 lowCutoffValue.setEnabled(true);
             }
         }
     }
 
     /**
-     * Listens to chages in checkbox state
+     * Listens to changes in checkbox state
      * sets whether to use or not the positive cutoffs in creating the network
      */
-    private class highCheckBoxAction implements ItemListener {
+    private class HighCheckBoxAction implements ItemListener {
     	
     	@Override
         public void itemStateChanged(ItemEvent e) {
@@ -480,14 +472,15 @@ public class CorrelateHistogramDialog extends JDialog {
     }
 
     /**
-     * Listens to chages in combobox state
+     * Listens to changes in combobox state
      * converts between percent and number of interactions upon change of selction
      */
-    private class percentNumberComboBox_Action implements ItemListener {
+    private class PercentNumberComboBoxAction implements ItemListener {
         
     	@Override
         public void itemStateChanged(ItemEvent e) {
             String selectedString = (String) percentNumberComboBox.getSelectedItem();
+            
             if (selectedString.equals("Number of Interactions")) {
                 interactionsValue.setText(Integer.toString(network.getNumberOfInteractions(isRow, cutoffs)));
             } else if (selectedString.equals("Percent of Interactions")) {
@@ -497,8 +490,8 @@ public class CorrelateHistogramDialog extends JDialog {
     }
 
     /**
-     * Listens to Ok button action
-     * Upon activation retreives the latest cutoffs saves them in the singleton class
+     * Listens to OK button action.
+     * Upon activation retrieves the latest cutoffs saves them in the singleton class
      * and begins the timed an monitored progress of the network creation
      */
     private class OKAction extends AbstractAction {
@@ -520,7 +513,7 @@ public class CorrelateHistogramDialog extends JDialog {
             
             if (isRow) {
                 interactionsGetSet();
-                network.saveRowCutoffs();//Saves the row cutoffs in singleton
+                network.saveRowCutoffs(); // Saves the row cutoffs in singleton
                 type = GENE_NET_DEF;
             } else {
                 interactionsGetSet();

@@ -92,17 +92,6 @@ public class Axe
 				labelsSlicing[i] = min + i * pitch;
 			}
 		}
-
-//    System.out.println("\nAxe " + index + " lines :");
-//    for (int i = 0; i < linesSlicing.length; i++) {
-//      System.out.print(" " + linesSlicing[i]);
-//    }
-//    System.out.println("\nAxe " + index + " labels :");
-//    for (int i = 0; i < labelsSlicing.length; i++) {
-//      System.out.print(" " + labelsSlicing[i]);
-//    }
-//    System.out.println();
-
 	}
 
 	public void plot(Graphics comp) {
