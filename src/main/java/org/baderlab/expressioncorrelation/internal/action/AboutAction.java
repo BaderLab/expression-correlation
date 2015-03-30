@@ -2,6 +2,7 @@ package org.baderlab.expressioncorrelation.internal.action;
 
 import java.awt.event.ActionEvent;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 import org.baderlab.expressioncorrelation.internal.view.AboutDialog;
@@ -65,6 +66,8 @@ public class AboutAction extends AbstractCyAction {
 		// Display about box
         final AboutDialog aboutDialog = new AboutDialog(parentFrame);
         aboutDialog.pack();
+        aboutDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        aboutDialog.setLocationRelativeTo(parentFrame);
         aboutDialog.setVisible(true);
     }
 }

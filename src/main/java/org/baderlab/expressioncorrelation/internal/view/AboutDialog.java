@@ -1,10 +1,14 @@
 package org.baderlab.expressioncorrelation.internal.view;
 
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;
+
+import org.baderlab.expressioncorrelation.internal.view.util.LookAndFeelUtil;
 
 /**
  * * Copyright (c) 2005 Memorial Sloan-Kettering Cancer Center
@@ -48,6 +52,7 @@ public class AboutDialog extends JDialog {
 
 	private static final long serialVersionUID = 641571959376323128L;
 
+	@SuppressWarnings("serial")
 	public AboutDialog(final Frame parentFrame) {
         super(parentFrame, "About", false);
         setResizable(false);
@@ -56,14 +61,29 @@ public class AboutDialog extends JDialog {
         final JEditorPane editorPane = new JEditorPane();
         editorPane.setEditable(false);
         editorPane.setEditorKit(new HTMLEditorKit());
-        editorPane.setText("<html><body><P align=center>Expression Correlation Network Plugin v1.1 (May 2007)<BR>" +
-                "written by Elena Potylitsine and Weston Whitaker<BR>" +
-                "during the Cornell/MSKCC summer student program 2004<BR>" +
-                "Chris Sander Group<BR>" +
-                "Computational Biology Center<BR>" +
-                "Memorial Sloan-Kettering Cancer Center<BR>" +
-                "New York City</p></body></html>");
+        editorPane.setText(
+        		"<html><body style='margin:10px 20px;text-align:center;font-family:sans-serif;'>" +
+        		"<h2>ExpressionCorrelation App</h2>" +
+        		"<h3>Version 1.1 (April 2015)</h3>" +
+                "<p>Written by Elena Potylitsine and Weston Whitaker<br />" +
+        		"during the Cornell/MSKCC summer student program 2004</p>" +
+                "<p>Chris Sander Group<br />" +
+                "Computational Biology Center<br />" +
+                "Memorial Sloan-Kettering Cancer Center<br />" +
+                "New York City</p></body></html>"
+        );
         
         setContentPane(editorPane);
+        
+        LookAndFeelUtil.setDefaultOkCancelKeyStrokes(
+        		getRootPane(),
+        		null,
+        		new AbstractAction() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						dispose();
+					}
+				}
+        );
     }
 }
