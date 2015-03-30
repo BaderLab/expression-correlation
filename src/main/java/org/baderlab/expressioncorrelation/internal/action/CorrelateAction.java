@@ -24,8 +24,12 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.task.read.LoadTableFileTaskFactory;
+import org.cytoscape.work.FinishStatus;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 /**
@@ -84,64 +88,98 @@ public class CorrelateAction extends AbstractCyAction {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
         final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
-
-        final Set<CyTable> globalTables = serviceRegistrar.getService(CyTableManager.class).getGlobalTables();
+        final CyTableManager tblMgr = serviceRegistrar.getService(CyTableManager.class);
+		final Set<CyTable> globalTables = tblMgr.getGlobalTables();
         
-// TODO: First check there is at least one unassigned table        
+		// First check there is at least one unassigned table        
         if (globalTables == null || globalTables.isEmpty()) {
-// TODO: None: "Want to import one now?" :: yes => Run import table task
-            JOptionPane.showMessageDialog(parentFrame, "You must load an Expression Matrix File to run this plugin.", "ALERT!!!", JOptionPane.ERROR_MESSAGE);
-        } else {
-// TODO: "Select the data table from the list:" (also show button to import new one)
-        	// TODO Test Data (get from UI) ####################################
-        	final CyTable table = globalTables.iterator().next();
-        	final String geneColumnName = "geneName";
-        	final List<String> condNameList = new ArrayList<>();
-        	for (final CyColumn col : table.getColumns()) {
-        		if (col.getName().endsWith("exp")) condNameList.add(col.getName());
-        	}
-        	final String[] conditionNames = condNameList.toArray(new String[condNameList.size()]);
-        	// #################################################################
+        	// No tables: Ask the user to import one first...
+        	final Object[] options = new Object[]{ "Yes, Import Table", "Cancel" };
         	
-        	final ExpressionData data = new ExpressionData(table, geneColumnName, conditionNames);
-        	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
-        	
-            int colNumber = network.getNumberOfCols(); //number of conditions in the condition network
-            int rowNumber = network.getNumberOfRows();
-            int selectedOption = JOptionPane.OK_OPTION;
-
-            if (rowNumber < 4 && (type == BUILD_NETWORK || type == COND_NET_PREVIEW || type == COND_NET_DEF)) {
-            	// Must only come up in case when < 4 genes and try to do condition matrix
-                // the vectors for condition matrix will be of length < 4 not enough
-                Object[] options = {
-                		"The expresssion data contains less then 4 genes (" + rowNumber + " genes found)." + '\n' +
-                        "The Pearson Correlation calculation will not produce" + '\n' +
-                        "reliable results for correlating the condition matrix." + '\n' +
-                        "Would you like to proceed?"
-                };
-                selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH GENES", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-            } else if (colNumber < 4 && (type == BUILD_NETWORK || type == GENE_NET_PREVIEW || type == GENE_NET_DEF)) {
-            	// Must only come up in case when < 4 conditions and try to do gene matrix
-                // the vectors for condition matrix will be of length < 4 not enough
-                Object[] options = {
-                		"The expresssion data contains less then 4 conditions (" + colNumber + " conditions found)." + '\n' +
-                        "The Pearson Correlation calculation will not produce" + '\n' +
-                        "reliable results for correlating the gene matrix." + '\n' +
-                        "Would you like to proceed?"
-                };
-                selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH CONDITIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-            }
+            final int answer = JOptionPane.showOptionDialog(
+            		parentFrame,
+            		"<html>You must import an Expression Matrix File to an Unassigned Table first.<br>Do you want to import one now?</html>",
+            		"No Unassigned Tables",
+            		JOptionPane.YES_NO_OPTION,
+            		JOptionPane.INFORMATION_MESSAGE,
+            		null,
+            		options,
+            		options[0]
+            );
             
-            // Procede if not canceled
-            if (selectedOption == JOptionPane.OK_OPTION) {
-	            // Create a Correlate Task
-	            final Task task = new CorrelateTask(type, network, serviceRegistrar);
-	
-	            // Execute Task via TaskManager
-	            final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
-	            taskMgr.execute(new TaskIterator(task));
+            if (answer == JOptionPane.YES_OPTION) {
+            	final LoadTableFileTaskFactory tblTaskFactory =
+            			serviceRegistrar.getService(LoadTableFileTaskFactory.class);
+            	final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
+            	
+            	taskMgr.execute(tblTaskFactory.createTaskIterator(), new TaskObserver() {
+					@Override
+					public void taskFinished(ObservableTask task) {
+					}
+					@Override
+					public void allFinished(FinishStatus finishStatus) {
+						// Show Correlate dialog if at least one unassigned table exists
+						final Set<CyTable> globalTables = tblMgr.getGlobalTables();
+						
+						if (globalTables != null && !globalTables.isEmpty())
+							showCorrelateDialog(parentFrame, globalTables);
+					}
+				});
             }
+        } else {
+        	showCorrelateDialog(parentFrame, globalTables);
         }
     }
-}
 
+	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> globalTables) {
+		// TODO: "Select the data table from the list:" (also show button to import new one)
+    	// TODO Test Data (get from UI) ####################################
+    	final CyTable table = globalTables.iterator().next();
+    	final String geneColumnName = "geneName";
+    	final List<String> condNameList = new ArrayList<>();
+    	for (final CyColumn col : table.getColumns()) {
+    		if (col.getName().endsWith("exp")) condNameList.add(col.getName());
+    	}
+    	final String[] conditionNames = condNameList.toArray(new String[condNameList.size()]);
+    	// #################################################################
+    	
+    	final ExpressionData data = new ExpressionData(table, geneColumnName, conditionNames);
+    	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+    	
+        int colNumber = network.getNumberOfCols(); //number of conditions in the condition network
+        int rowNumber = network.getNumberOfRows();
+        int selectedOption = JOptionPane.OK_OPTION;
+
+        if (rowNumber < 4 && (type == BUILD_NETWORK || type == COND_NET_PREVIEW || type == COND_NET_DEF)) {
+        	// Must only come up in case when < 4 genes and try to do condition matrix
+            // the vectors for condition matrix will be of length < 4 not enough
+            Object[] options = {
+            		"The expresssion data contains less then 4 genes (" + rowNumber + " genes found)." + '\n' +
+                    "The Pearson Correlation calculation will not produce" + '\n' +
+                    "reliable results for correlating the condition matrix." + '\n' +
+                    "Would you like to proceed?"
+            };
+            selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH GENES", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        } else if (colNumber < 4 && (type == BUILD_NETWORK || type == GENE_NET_PREVIEW || type == GENE_NET_DEF)) {
+        	// Must only come up in case when < 4 conditions and try to do gene matrix
+            // the vectors for condition matrix will be of length < 4 not enough
+            Object[] options = {
+            		"The expresssion data contains less then 4 conditions (" + colNumber + " conditions found)." + '\n' +
+                    "The Pearson Correlation calculation will not produce" + '\n' +
+                    "reliable results for correlating the gene matrix." + '\n' +
+                    "Would you like to proceed?"
+            };
+            selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH CONDITIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        }
+        
+        // Procede if not canceled
+        if (selectedOption == JOptionPane.OK_OPTION) {
+            // Create a Correlate Task
+            final Task task = new CorrelateTask(type, network, serviceRegistrar);
+
+            // Execute Task via TaskManager
+            final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
+            taskMgr.execute(new TaskIterator(task));
+        }
+	}
+}
