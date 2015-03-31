@@ -1,11 +1,7 @@
 package org.baderlab.expressioncorrelation.internal.task;
 
-import javax.swing.JFrame;
-
 import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
-import org.baderlab.expressioncorrelation.internal.view.CorrelateHistogramDialog;
-import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -52,12 +48,10 @@ import org.cytoscape.work.TaskMonitor;
 
 
 /**
- * This class represents a task that calls methods to calculate a correlation network and/or corresponding histogram
+ * This class represents a task that calls methods to calculate a correlation network
  */
 public class CorrelateTask implements Task {
 
-    private CorrelateHistogramDialog histogram;
-    
     /**
      * Sets which type thread to run and time
      * case 1: Run and time both the column and row networks
@@ -88,23 +82,28 @@ public class CorrelateTask implements Task {
      */
     @Override
 	public void run(final TaskMonitor tm) throws Exception {
+    	tm.setTitle("Performing Correlation Calculations");
+    	
         switch (type) {
             case BUILD_NETWORK:
-                colRun();
-                rowRun();
+                colRun(tm);
+                rowRun(tm);
                 break;
             case COND_NET_DEF:
-                colRun();
-                break;
-            case COND_NET_PREVIEW:
-                colHistogram();
+                colRun(tm);
                 break;
             case GENE_NET_DEF:
-                rowRun();
+                rowRun(tm);
                 break;
+            case COND_NET_PREVIEW:
+            	network.loadColCutoffs(); // Loads previously saved user column cutoffs from the singleton class
+            	network.colHistogram(tm);
+            	break;
             case GENE_NET_PREVIEW:
-                rowHistogram();
-                break;
+            	network.loadRowCutoffs(); // Loads previously saved user row cutoffs from the singleton class
+            	network.rowHistogram(tm);
+			default:
+				break;
         }
     }
 
@@ -120,34 +119,10 @@ public class CorrelateTask implements Task {
     }
 
     /**
-	 * Halts the Task: Not Currently Implemented.
-	 */
-// TODO
-	public void halt() {
-		// Task can not currently be halted.
-        network.cancel();
-        
-		if (histogram != null) {
-            histogram.dispose();
-            histogram.setVisible(false);
-        }
-    }
-
-    /**
-     * Gets the Task Title.
-     *
-     * @return human readable task title.
-     */
-// TODO
-    public String getTitle() {
-        return new String("Performing correlation calculations");
-    }
-
-    /**
      * The condition matrix calculation
      */
-	private void colRun() {
-		final CyNetwork net = network.calcCols();
+	private void colRun(final TaskMonitor tm) {
+		final CyNetwork net = network.calcCols(tm);
 
 		if (network.cancelled())
 			destroy(net);
@@ -156,39 +131,15 @@ public class CorrelateTask implements Task {
 	/**
 	 * The gene matrix calculation
 	 */
-	private void rowRun() {
-		final CyNetwork net = network.calcRows();
+	private void rowRun(final TaskMonitor tm) {
+		final CyNetwork net = network.calcRows(tm);
 
 		if (network.cancelled())
 			destroy(net);
 	}
 
-    /**
-     * The condition histogram calculation
-     */
-    private void colHistogram() {// TODO Cannot be a Task with this
-		final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
-		
-		histogram = new CorrelateHistogramDialog(parentFrame, false, network, serviceRegistrar); // not-row histogram
-		histogram.pack();
-		histogram.setLocationRelativeTo(parentFrame);
-		histogram.setVisible(true);
-    }
-
-    /**
-     * The gene histogram calculation
-     */
-    private void rowHistogram() {// TODO Cannot be a Task with this
-		final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
-		
-		histogram = new CorrelateHistogramDialog(parentFrame, true, network, serviceRegistrar); // row histogram
-		histogram.pack();
-		histogram.setLocationRelativeTo(parentFrame);
-		histogram.setVisible(true);
-    }
-	
 	@Override
 	public void cancel() {
-		// TODO Auto-generated method stub
+		network.cancel();
 	}
 }

@@ -108,27 +108,20 @@ public class CorrelateHistogramDialog extends JDialog {
      * @param newNetwork  - instance of the SimilarityMatrix
      */
     @SuppressWarnings("serial")
-	public CorrelateHistogramDialog(final Frame parentFrame, final boolean row,
-			final CorrelateSimilarityNetwork newNetwork, final CyServiceRegistrar serviceRegistrar) {
-        super(parentFrame, "Matrix Parameters", false);
+	public CorrelateHistogramDialog(
+			final Frame parentFrame,
+			final boolean row,
+			final CorrelateSimilarityNetwork newNetwork,
+			final CyServiceRegistrar serviceRegistrar
+	) {
+        super(parentFrame, "Matrix Parameters");
         this.serviceRegistrar = serviceRegistrar;
         
+        setModalityType(ModalityType.APPLICATION_MODAL);
         setResizable(false);
         
         isRow = row;
         network = newNetwork;
-
-        if (isRow) {
-            network.loadRowCutoffs();	//Loads previosly saved user row cuttofs from the singleton class
-            network.rowHistogram(); 	// get image and values
-        } else {
-            network.loadColCutoffs();	//Loads previously saved user column cutoffs from the singleton class
-            network.colHistogram(); 	// get image and values
-        }
-        
-        if (network.cancelled())
-            return;
-        
         cutoffs = network.getCutoffs(isRow);
         
         final JLabel lowLbl = new JLabel("Low Cutoff:", JLabel.RIGHT);
@@ -171,7 +164,8 @@ public class CorrelateHistogramDialog extends JDialog {
 										.addComponent(highLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
 								)
 								.addComponent(interactionsLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-						).addGroup(layout.createParallelGroup(Alignment.LEADING, true)
+						)
+						.addGroup(layout.createParallelGroup(Alignment.LEADING, true)
 								.addComponent(getLowCutoffTxt(), PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
 								.addComponent(getHighCutoffTxt(), PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
 								.addGroup(layout.createSequentialGroup()

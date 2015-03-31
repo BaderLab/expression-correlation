@@ -14,9 +14,13 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.view.layout.CyLayoutAlgorithm;
+import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
@@ -98,9 +102,8 @@ public class CorrelateSimilarityNetwork {
     private boolean colUseNeg = true;           //True if negative interactions are to be used
     private int numberOfCols = 0;
 
-    private boolean cancel;             //This will cancel the current loop in calc() or histogram(). To use call cancel().
-    //      The cancel value will automatically be reset to false
-    private TaskMonitor taskMonitor;
+    private boolean cancel;     //This will cancel the current loop in calc() or histogram(). To use call cancel().
+    							//      The cancel value will automatically be reset to false
     
     private final ExpressionData data;
     private final CyServiceRegistrar serviceRegistrar;
@@ -142,13 +145,13 @@ public class CorrelateSimilarityNetwork {
      *
      * @return Returns the CyNetwork for the row (gene) similarity network.
      */
-    public CyNetwork calcRows() {
+    public CyNetwork calcRows(final TaskMonitor tm) {
         rowDone = false;
         
         if (rowNetName.equals("Gene Network"))
             nameNetwork();
         
-        return calcRows(rowNetName + ": " + rowNegCutoff + " & " + rowPosCutoff, rowNegCutoff, rowPosCutoff);
+        return calcRows(rowNetName + ": " + rowNegCutoff + " & " + rowPosCutoff, rowNegCutoff, rowPosCutoff, tm);
     }
 
     /**
@@ -170,12 +173,12 @@ public class CorrelateSimilarityNetwork {
      * @param highCutoff  - Rows with Correlation above this value will be used to construct the row similarity network if rowUsePos is true.
      * @return
      */
-    private CyNetwork calcRows(String networkName, double lowCutoff, double highCutoff) {
+    private CyNetwork calcRows(String networkName, double lowCutoff, double highCutoff, final TaskMonitor tm) {
         rowDone = false;
         String[] geneNames = data.getGeneNames();
         DoubleMatrix2D inputMatrix = getExpressionMatrix();
         
-        return calcRows(networkName, inputMatrix, lowCutoff, highCutoff, geneNames);
+        return calcRows(networkName, inputMatrix, lowCutoff, highCutoff, geneNames, tm);
     }
 
 
@@ -195,10 +198,17 @@ public class CorrelateSimilarityNetwork {
      * @param highCutoff  - Rows with Correlation above this value will be used to construct the row similarity network if rowUsePos is true.
      * @return
      */
-    private CyNetwork calcRows(String networkName, DoubleMatrix2D inputMatrix, double lowCutoff, double highCutoff, String[] rowNames) {
+    private CyNetwork calcRows(
+    		String networkName,
+    		DoubleMatrix2D inputMatrix,
+    		double lowCutoff,
+    		double highCutoff,
+    		String[] rowNames,
+    		final TaskMonitor tm
+    ) {
         rowDone = false;
         
-        return calc(true, networkName, inputMatrix, lowCutoff, highCutoff, rowNames);
+        return calc(true, networkName, inputMatrix, lowCutoff, highCutoff, rowNames, tm);
     }
 
     /**
@@ -219,13 +229,13 @@ public class CorrelateSimilarityNetwork {
      *
      * @return Returns the CyNetwork for the column (condition) similarity network.
      */
-    public CyNetwork calcCols() {
+    public CyNetwork calcCols(final TaskMonitor tm) {
         colDone = false;
         
         if (colNetName.equals("Cond Network"))
             nameNetwork();
         
-        return calcCols(colNetName + ": " + colNegCutoff + " & " + colPosCutoff, colNegCutoff, colPosCutoff);
+        return calcCols(colNetName + ": " + colNegCutoff + " & " + colPosCutoff, colNegCutoff, colPosCutoff, tm);
     }
 
     /**
@@ -246,12 +256,12 @@ public class CorrelateSimilarityNetwork {
      * @param highCutoff  - Conditions with Correlation above this value will be used to construct the condition similarity network if colUsePos is true.
      * @return Returns the CyNetwork for the column (condition) similarity network.
      */
-    private CyNetwork calcCols(String networkName, double lowCutoff, double highCutoff) {
+    private CyNetwork calcCols(String networkName, double lowCutoff, double highCutoff, final TaskMonitor tm) {
         colDone = false;
         String[] condNames = data.getConditionNames();
         DoubleMatrix2D inputMatrix = getExpressionMatrix();
         
-        return calc(false, networkName, inputMatrix, lowCutoff, highCutoff, condNames);
+        return calc(false, networkName, inputMatrix, lowCutoff, highCutoff, condNames, tm);
     }
 
     /**
@@ -264,7 +274,14 @@ public class CorrelateSimilarityNetwork {
      * @param names        - String of column names with the corresponding index for the expression matrix
      * @return
      */
-	private CyNetwork calc(boolean isRowNetwork, String networkName, DoubleMatrix2D inputMatrix, double lowCutoff, double highCutoff, String[] names) {
+	private CyNetwork calc(
+			boolean isRowNetwork,
+			String networkName,
+			DoubleMatrix2D inputMatrix,
+			double lowCutoff,
+			double highCutoff,
+			String[] names,
+			final TaskMonitor tm) {
         // When creating the network, don't automatically create the network view
 		final CyNetwork newNetwork = createNetwork(networkName);
 
@@ -281,21 +298,21 @@ public class CorrelateSimilarityNetwork {
         if (data.columns <= 10) mod = 0;
 
         // The loop below is the main step. Here the Pearson Correlation Coefficient is calculated
-        //  note: only the top half of the rectangle is calculated since the matrix is symetric
+        //  note: only the top half of the rectangle is calculated since the matrix is symmetric
         // The Similarity Matrix is never stored. Instead, at each point in the Similarity Matrix,
-        //  the correlaion is calculated, and if its above the threshold then an edge is created
+        //  the correlation is calculated, and if its above the threshold then an edge is created
         //  connecting the nodes involved. The correlation value is then erased.
         //  Information about values below the threshold is lost.
         // This loop is set up to calculate the column correlations, so for the row
         //  network the matrix has been transposed
-        if (taskMonitor != null) {
+        if (tm != null) {
             String type = "condition";
             
             if (isRowNetwork)
                 type = "gene";
             
-//            taskMonitor.setPercentCompleted(-1);
-//            taskMonitor.setStatus("Constructing " + type + " correlation network...");
+            tm.setProgress(0.0);
+            tm.setStatusMessage("Constructing " + type + " correlation network...");
         }
 
         // Goes through each column
@@ -306,17 +323,14 @@ public class CorrelateSimilarityNetwork {
             if (cancel)
                 return newNetwork;
 
-//            if ((i * 10) % (data.columns - mod) == 0) {
-//                if (taskMonitor != null)
-//                    taskMonitor.setPercentCompleted((int)((double) (i * 100) / data.columns));
-//            }
+            if (tm != null && (i * 10) % (data.columns - mod) == 0)
+            	tm.setProgress((double) i / data.columns);
         }
 
-//        if (taskMonitor != null)
-//        {
-//            taskMonitor.setPercentCompleted(100);
-//            taskMonitor.setStatus("Finished constructing network");
-//        }
+        if (tm != null) {
+            tm.setProgress(1.0);
+            tm.setStatusMessage("Finished constructing network");
+        }
 
         if (isRowNetwork)
             rowDone = true;
@@ -407,7 +421,6 @@ public class CorrelateSimilarityNetwork {
         public boolean usePos = true;        //true if positive cutoffs are to be considered
         public boolean useNeg = true;        //true if positive cutoffs are to be considered
         boolean fullNetwork;               //true if the full network is being calculated, false if only for one gene or condition
-        TaskMonitor taskMonitor;
 
         /**
          * Creating an instance of InitiationData will automatically do all the initial calculations
@@ -416,7 +429,11 @@ public class CorrelateSimilarityNetwork {
          * @param inputMatrix
          * @param fullNetwork  -
          */
-        InitiationData(boolean isRowNetwork, DoubleMatrix2D inputMatrix, boolean fullNetwork) {
+        InitiationData(
+        		final boolean isRowNetwork,
+        		final DoubleMatrix2D inputMatrix,
+        		final boolean fullNetwork
+        ) {
             this.inputMatrix = inputMatrix;
             this.isRowNetwork = isRowNetwork;
             this.fullNetwork = fullNetwork;
@@ -452,7 +469,7 @@ public class CorrelateSimilarityNetwork {
                     colTotalSteps = calcTimeSingle(inputMatrix);
             }
 
-            //Converts the data into a more accessable form
+            // Converts the data into a more accessable form
             rows = inputMatrix.rows();
             columns = inputMatrix.columns();
             sums = new double[columns];
@@ -471,7 +488,7 @@ public class CorrelateSimilarityNetwork {
                     return;
             }
 
-            //Calculates the standard deviation for each column
+            // Calculates the standard deviation for each column
             stdDev = new DenseDoubleMatrix1D(columns);
             
             for (int i = 0; i < columns; i++) {
@@ -498,7 +515,7 @@ public class CorrelateSimilarityNetwork {
      * @return cutoffs[] = [lowCutoff highCutoff]
      */
     private double[] cutoffCheck(boolean isRowNetwork, double lowCutoff, double highCutoff) {
-        //Checks to see if valid cutoff values are given
+        // Checks to see if valid cutoff values are given
         if (Math.abs(lowCutoff) > 1 | Math.abs(highCutoff) > 1) {
             if (isRowNetwork) {
                 lowCutoff = rowNegCutoff;
@@ -608,24 +625,24 @@ public class CorrelateSimilarityNetwork {
      * Calculates the row histogram for the current Expression data<br>
      * The histogram is required for the getCutoffs functions
      */
-    public void rowHistogram() {
-        rowHistogram(getExpressionMatrix());
+    public void rowHistogram(final TaskMonitor tm) {
+        rowHistogram(getExpressionMatrix(), tm);
     }
 
     /**
      * Calculates the row histogram for the given Expression data<br>
      * The histogram is required for the getCutoffs functions
      */
-    private void rowHistogram(DoubleMatrix2D inputMatrix) {
-        histogram(true, inputMatrix);
+    private void rowHistogram(final DoubleMatrix2D inputMatrix, final TaskMonitor tm) {
+        histogram(true, inputMatrix, tm);
     }
 
     /**
      * Calculates the column histogram for the current Expression data<br>
      * The histogram is required for the getCutoffs functions
      */
-    public void colHistogram() {
-        colHistogram(getExpressionMatrix());
+    public void colHistogram(final TaskMonitor tm) {
+        colHistogram(getExpressionMatrix(), tm);
     }
 
     /**
@@ -634,8 +651,8 @@ public class CorrelateSimilarityNetwork {
      * The top half of the entire similarity matrix is calculated here, but
      * only the histogram is stored
      */
-    private void colHistogram(DoubleMatrix2D inputMatrix) {
-        histogram(false, inputMatrix);
+    private void colHistogram(final DoubleMatrix2D inputMatrix, final TaskMonitor tm) {
+        histogram(false, inputMatrix, tm);
     }
 
     /**
@@ -666,7 +683,7 @@ public class CorrelateSimilarityNetwork {
      * @param isRowNetwork - true for row network calculation, false for column network calculation
      * @param inputMatrix  - The expression data
      */
-    private void histogram(boolean isRowNetwork, DoubleMatrix2D inputMatrix) {
+    private void histogram(boolean isRowNetwork, DoubleMatrix2D inputMatrix, final TaskMonitor tm) {
         InitiationData data = new InitiationData(isRowNetwork, inputMatrix, true);
 
         int bins = 2000;      //Adjust this number to change the histogram accuracy
@@ -677,15 +694,15 @@ public class CorrelateSimilarityNetwork {
         int mod = data.columns % 10;
         if (data.columns <= 10) mod = 0;
 
-//        if (taskMonitor != null) {
-//            String type = "condition";
-//            
-//            if (isRowNetwork)
-//                type = "gene";
-//
-//            taskMonitor.setPercentCompleted(-1);
-//            taskMonitor.setStatus("Constructing  " + type + " correlation histogram...");
-//        }
+        if (tm != null) {
+            String type = "condition";
+            
+            if (isRowNetwork)
+                type = "gene";
+
+            tm.setProgress(0.0);
+            tm.setStatusMessage("Constructing  " + type + " correlation histogram...");
+        }
 
         for (int i = 0; i < data.columns; i++) {
             for (int j = 0; j < i; j++) {
@@ -695,7 +712,6 @@ public class CorrelateSimilarityNetwork {
                     colCurrentStep++;
 
                 double corr = calcPearsonCorr(data,i,j);
-                //double corr = sr.corr(i,j);
 
                 if (corr < -1.0)
                     continue;
@@ -708,16 +724,16 @@ public class CorrelateSimilarityNetwork {
                 if (cancel)
                     return;
             }
-//            if ((i * 10) % (data.columns - mod) == 0) {
-//                if (taskMonitor != null)
-//                    taskMonitor.setPercentCompleted((int)((double) (i * 100) / data.columns));
-//            }
+            
+            if (tm != null && (i * 10) % (data.columns - mod) == 0)
+            	tm.setProgress((double) i / data.columns);
         }
 
-//        if (taskMonitor != null) {
-//            taskMonitor.setPercentCompleted(100);
-//            taskMonitor.setStatus("Finished constructing histogram");
-//        }
+        if (tm != null) {
+            tm.setProgress(1.0);
+            tm.setStatusMessage("Finished constructing histogram");
+        }
+        
         String[] labels = new String[bins];
 
         for (int i = 0; i < bins; i++) {
@@ -1142,7 +1158,28 @@ public class CorrelateSimilarityNetwork {
 			final CyNetworkView netView =
 					appMgr.getDefaultNetworkViewRenderer().getNetworkViewFactory().createNetworkView(network);
 			serviceRegistrar.getService(CyNetworkViewManager.class).addNetworkView(netView);
-			// TODO Apply preferred layout
+			
+			// Apply preferred or default layout
+			if (network.getNodeCount() > 0)
+				applyLayout(props, netView);
         }
+	}
+
+	private void applyLayout(final Properties props, final CyNetworkView netView) {
+		final CyLayoutAlgorithmManager layoutMgr = serviceRegistrar.getService(CyLayoutAlgorithmManager.class);
+		
+		final String layoutName = props.getProperty(
+				"preferredLayoutAlgorithm", CyLayoutAlgorithmManager.DEFAULT_LAYOUT_NAME);
+		CyLayoutAlgorithm layout = layoutMgr.getLayout(layoutName);
+		
+		if (layout == null)
+			layout = layoutMgr.getDefaultLayout();
+		
+		if (layout != null) {
+			final TaskIterator taskIter = layout.createTaskIterator(netView, layout.getDefaultLayoutContext(),
+					CyLayoutAlgorithm.ALL_NODE_VIEWS, "");
+			final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
+			taskMgr.execute(taskIter);
+		}
 	}
 }

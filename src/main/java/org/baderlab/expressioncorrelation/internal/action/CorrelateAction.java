@@ -16,6 +16,7 @@ import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
 import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
 import org.baderlab.expressioncorrelation.internal.task.CorrelateTask;
+import org.baderlab.expressioncorrelation.internal.view.CorrelateHistogramDialog;
 import org.baderlab.expressioncorrelation.internal.view.InputDialog;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -169,14 +170,36 @@ public class CorrelateAction extends AbstractCyAction {
             selectedOption = JOptionPane.showConfirmDialog(parentFrame, msg, "Not Enough Conditions", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         }
         
-        // Procede if not canceled
+        // Continue if not canceled
         if (selectedOption == JOptionPane.OK_OPTION) {
             // Create a Correlate Task
             final Task task = new CorrelateTask(type, network, serviceRegistrar);
 
             // Execute Task via TaskManager
             final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
-            taskMgr.execute(new TaskIterator(task));
+            
+            taskMgr.execute(new TaskIterator(task), new TaskObserver() {
+				
+            	@Override
+				public void taskFinished(ObservableTask task) {
+				}
+				
+            	@Override
+				public void allFinished(FinishStatus finishStatus) {
+					if (type == COND_NET_PREVIEW || type == GENE_NET_PREVIEW) {
+		        		// Show preview histogram
+		        		final CorrelateHistogramDialog histogram = new CorrelateHistogramDialog(
+		        				parentFrame,
+		        				(type == GENE_NET_PREVIEW),
+		        				network,
+		        				serviceRegistrar
+		        		);
+		        		histogram.pack();
+		        		histogram.setLocationRelativeTo(parentFrame);
+		        		histogram.setVisible(true);
+		        	}
+				}
+			});
         }
 	}
 }
