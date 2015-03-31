@@ -6,14 +6,13 @@ import java.util.List;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.doublealgo.Sorting;
-import cern.colt.matrix.doublealgo.Statistic;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 
 public class SpearmanRank {
 
 	private List<RankInfo> rankInfoList;
-    private DoubleMatrix2D distanceMatrix;
+//    private DoubleMatrix2D distanceMatrix;
 
     public SpearmanRank(final DoubleMatrix2D data) {
         init(data);
@@ -111,7 +110,7 @@ public class SpearmanRank {
 		}
 
         Algebra A = new Algebra();
-        distanceMatrix = Statistic.distance(A.transpose(rdata),Statistic.EUCLID);
+//        distanceMatrix = Statistic.distance(A.transpose(rdata),Statistic.EUCLID);
     }
 	
 	/**

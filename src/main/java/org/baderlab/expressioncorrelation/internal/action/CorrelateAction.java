@@ -7,8 +7,6 @@ import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionT
 import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionType.GENE_NET_PREVIEW;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -18,9 +16,9 @@ import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
 import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
 import org.baderlab.expressioncorrelation.internal.task.CorrelateTask;
+import org.baderlab.expressioncorrelation.internal.view.InputDialog;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -132,44 +130,43 @@ public class CorrelateAction extends AbstractCyAction {
     }
 
 	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> globalTables) {
-		// TODO: "Select the data table from the list:" (also show button to import new one)
-    	// TODO Test Data (get from UI) ####################################
-    	final CyTable table = globalTables.iterator().next();
-    	final String geneColumnName = "geneName";
-    	final List<String> condNameList = new ArrayList<>();
-    	for (final CyColumn col : table.getColumns()) {
-    		if (col.getName().endsWith("exp")) condNameList.add(col.getName());
-    	}
-    	final String[] conditionNames = condNameList.toArray(new String[condNameList.size()]);
-    	// #################################################################
-    	
-    	final ExpressionData data = new ExpressionData(table, geneColumnName, conditionNames);
+		// Get input data
+    	final InputDialog inputDialog = new InputDialog(parentFrame, serviceRegistrar);
+    	inputDialog.setLocationRelativeTo(parentFrame);
+    	inputDialog.setVisible(true);
+		
+		final ExpressionData data = inputDialog.getExpressionData();
+		
+		// Cancelled?
+		if (data == null)
+			return;
+		
     	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
     	
-        int colNumber = network.getNumberOfCols(); //number of conditions in the condition network
+        int colNumber = network.getNumberOfCols(); // number of conditions in the condition network
         int rowNumber = network.getNumberOfRows();
         int selectedOption = JOptionPane.OK_OPTION;
 
         if (rowNumber < 4 && (type == BUILD_NETWORK || type == COND_NET_PREVIEW || type == COND_NET_DEF)) {
         	// Must only come up in case when < 4 genes and try to do condition matrix
             // the vectors for condition matrix will be of length < 4 not enough
-            Object[] options = {
+            Object[] msg = {
             		"The expresssion data contains less then 4 genes (" + rowNumber + " genes found)." + '\n' +
                     "The Pearson Correlation calculation will not produce" + '\n' +
                     "reliable results for correlating the condition matrix." + '\n' +
                     "Would you like to proceed?"
             };
-            selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH GENES", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            selectedOption = JOptionPane.showConfirmDialog(parentFrame, msg, "Not Enough Genes", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         } else if (colNumber < 4 && (type == BUILD_NETWORK || type == GENE_NET_PREVIEW || type == GENE_NET_DEF)) {
         	// Must only come up in case when < 4 conditions and try to do gene matrix
             // the vectors for condition matrix will be of length < 4 not enough
-            Object[] options = {
+            Object[] msg = {
             		"The expresssion data contains less then 4 conditions (" + colNumber + " conditions found)." + '\n' +
                     "The Pearson Correlation calculation will not produce" + '\n' +
                     "reliable results for correlating the gene matrix." + '\n' +
                     "Would you like to proceed?"
             };
-            selectedOption = JOptionPane.showConfirmDialog(parentFrame, options, "NOT ENOUGH CONDITIONS", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            selectedOption = JOptionPane.showConfirmDialog(parentFrame, msg, "Not Enough Conditions", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
         }
         
         // Procede if not canceled

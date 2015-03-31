@@ -39,8 +39,8 @@ public class ExpressionData {
 			
 			for (int j = 0; j < conditionNames.length; j++) {
 				final String condition = conditionNames[j];
-				final Double value = row.get(condition, Double.class);
-				allValues[i][j] = value != null ? value : 0.0;
+				final Number value = row.get(condition, Number.class);
+				allValues[i][j] = value != null ? value.doubleValue() : 0.0;
 			}
 			
 			i++;
