@@ -10,8 +10,10 @@ public class ExpressionData {
 	private final CyTable table;
 	private final String geneColumnName;
 	private final String[] conditionNames;
-	private final String[] geneNames;
-	private final double[][] allValues;
+	private String[] geneNames;
+	private double[][] allValues;
+	
+	private final Object lock = new Object();
 
 	public ExpressionData(final CyTable table, final String geneColumnName, final String[] conditionNames) {
 		if (table == null)
@@ -26,25 +28,6 @@ public class ExpressionData {
 		this.table = table;
 		this.geneColumnName = geneColumnName;
 		this.conditionNames = conditionNames;
-		
-		// Gene names and values
-		final List<CyRow> allRows = table.getAllRows();
-		geneNames = new String[allRows.size()];
-		allValues = new double[allRows.size()][conditionNames.length];
-		int i = 0;
-		
-		for (final CyRow row : allRows) {
-			final String name = row.get(geneColumnName, String.class);
-			geneNames[i] = name;
-			
-			for (int j = 0; j < conditionNames.length; j++) {
-				final String condition = conditionNames[j];
-				final Number value = row.get(condition, Number.class);
-				allValues[i][j] = value != null ? value.doubleValue() : 0.0;
-			}
-			
-			i++;
-		}
 	}
 
 	public CyTable getTable() {
@@ -60,6 +43,11 @@ public class ExpressionData {
 	}
 
 	public String[] getGeneNames() {
+		synchronized (lock) {
+			if (geneNames == null)
+				init();
+		}
+		
 		return geneNames;
 	}
 
@@ -79,6 +67,32 @@ public class ExpressionData {
 	 * @return All gene/condition values
 	 */
 	public double[][] getAllValues() {
+		synchronized (lock) {
+			if (allValues == null)
+				init();
+		}
+		
 		return allValues;
+	}
+	
+	private void init() {
+		// Gene names and values
+		final List<CyRow> allRows = table.getAllRows();
+		geneNames = new String[allRows.size()];
+		allValues = new double[allRows.size()][conditionNames.length];
+		int i = 0;
+		
+		for (final CyRow row : allRows) {
+			final String name = row.get(geneColumnName, String.class);
+			geneNames[i] = name;
+			
+			for (int j = 0; j < conditionNames.length; j++) {
+				final String condition = conditionNames[j];
+				final Number value = row.get(condition, Number.class);
+				allValues[i][j] = value != null ? value.doubleValue() : 0.0;
+			}
+			
+			i++;
+		}
 	}
 }

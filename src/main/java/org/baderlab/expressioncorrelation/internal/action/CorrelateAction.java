@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.CorrelateSimilarityNetwork;
@@ -120,12 +121,20 @@ public class CorrelateAction extends AbstractCyAction {
 						// Show Correlate dialog if at least one unassigned table exists
 						final Set<CyTable> globalTables = tblMgr.getGlobalTables();
 						
-						if (globalTables != null && !globalTables.isEmpty())
-							showCorrelateDialog(parentFrame, globalTables);
+						if (globalTables != null && !globalTables.isEmpty()) {
+							// Make sure it runs on the EDT
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									showCorrelateDialog(parentFrame, globalTables);
+								}
+							});
+						}
 					}
 				});
             }
         } else {
+        	// Still running on the EDT
         	showCorrelateDialog(parentFrame, globalTables);
         }
     }
@@ -157,7 +166,12 @@ public class CorrelateAction extends AbstractCyAction {
                     "reliable results for correlating the condition matrix." + '\n' +
                     "Would you like to proceed?"
             };
-            selectedOption = JOptionPane.showConfirmDialog(parentFrame, msg, "Not Enough Genes", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            selectedOption = JOptionPane.showConfirmDialog(
+            		parentFrame, msg,
+            		"Not Enough Genes",
+            		JOptionPane.OK_CANCEL_OPTION,
+            		JOptionPane.WARNING_MESSAGE
+            );
         } else if (colNumber < 4 && (type == BUILD_NETWORK || type == GENE_NET_PREVIEW || type == GENE_NET_DEF)) {
         	// Must only come up in case when < 4 conditions and try to do gene matrix
             // the vectors for condition matrix will be of length < 4 not enough
@@ -167,7 +181,13 @@ public class CorrelateAction extends AbstractCyAction {
                     "reliable results for correlating the gene matrix." + '\n' +
                     "Would you like to proceed?"
             };
-            selectedOption = JOptionPane.showConfirmDialog(parentFrame, msg, "Not Enough Conditions", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            selectedOption = JOptionPane.showConfirmDialog(
+            		parentFrame,
+            		msg,
+            		"Not Enough Conditions",
+            		JOptionPane.OK_CANCEL_OPTION,
+            		JOptionPane.WARNING_MESSAGE
+            );
         }
         
         // Continue if not canceled
@@ -187,16 +207,22 @@ public class CorrelateAction extends AbstractCyAction {
             	@Override
 				public void allFinished(FinishStatus finishStatus) {
 					if (type == COND_NET_PREVIEW || type == GENE_NET_PREVIEW) {
-		        		// Show preview histogram
-		        		final CorrelateHistogramDialog histogram = new CorrelateHistogramDialog(
-		        				parentFrame,
-		        				(type == GENE_NET_PREVIEW),
-		        				network,
-		        				serviceRegistrar
-		        		);
-		        		histogram.pack();
-		        		histogram.setLocationRelativeTo(parentFrame);
-		        		histogram.setVisible(true);
+						// Make sure it runs on the EDT
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								// Show preview histogram
+				        		final CorrelateHistogramDialog histogram = new CorrelateHistogramDialog(
+				        				parentFrame,
+				        				(type == GENE_NET_PREVIEW),
+				        				network,
+				        				serviceRegistrar
+				        		);
+				        		histogram.pack();
+				        		histogram.setLocationRelativeTo(parentFrame);
+				        		histogram.setVisible(true);
+							}
+						});
 		        	}
 				}
 			});
