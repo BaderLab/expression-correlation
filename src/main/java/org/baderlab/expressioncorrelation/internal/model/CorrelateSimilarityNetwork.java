@@ -71,9 +71,7 @@ public class CorrelateSimilarityNetwork {
 
     // Variables for the Row  Similarity Matrix (rows usually represent genes)
     private String rowNetName = "Gene Network"; //Default name of the network
-    private int rowCurrentStep = 0;               //Used during calc() and histogram()
     private int rowTotalSteps = 0;                //The number rowCurrentStep will reach when the calculations are done
-    private boolean rowDone = false;              //Indicates if calc() or histogram() is done
     private double rowPosCutoff = 0.95;          //Default value. Rows with Correlation above this value will be used to
     //      construct the row similarity network if rowUsePos is true
     //      To work properly: 0 <= rowPosCutoff <= 1
@@ -81,16 +79,12 @@ public class CorrelateSimilarityNetwork {
     //      construct the row similarity network if rowUseNeg is true
     //      To work properly: -1 <= rowNegCutoff <= 0
     private int[] rowHistogram;                //Similarity matrix histogram values (-1.0 = first bin = 0  to 1.0 = last bin)
-    private String[] rowHistogramLabels;       //Labels for the histogram (e.g ["-1.0 to -0.99", ...])
     private boolean rowUsePos = true;           //True if positive interactions are to be used
     private boolean rowUseNeg = true;           //True if negative interactions are to be used
     private int numberOfRows = 0;
 
     //Variables for the Column Similarity Matrix (columns usually represent conditions)
     private String colNetName = "Cond Network"; //Default name of the network
-    private int colCurrentStep = 0;               //Used during calc() and histogram()
-    private int colTotalSteps = 0;                //The number rowCurrentStep will reach when the calculations are done
-    private boolean colDone = false;              //Indicates if calc() or histogram() is done
     private double colPosCutoff = 0.95;          //Default value. Columns with Correlation above this value will be used to
     //      construct the column similarity network if colUsePos is true
     //      To work properly: 0 <= colPosCutoff <= 1
@@ -98,7 +92,6 @@ public class CorrelateSimilarityNetwork {
     //      construct the column similarity network if colUseNeg is true
     //      To work properly: -1 <= colNegCutoff <= 0
     private int[] colHistogram;                //Similarity matrix histogram values (-1.0 = first bin = 0  to 1.0 = last bin)
-    private String[] colHistogramLabels;       //Labels for the histogram (e.g ["-1.0 to -0.99", ...])
     private boolean colUsePos = true;           //True if positive interactions are to be used
     private boolean colUseNeg = true;           //True if negative interactions are to be used
     private int numberOfCols = 0;
@@ -147,8 +140,6 @@ public class CorrelateSimilarityNetwork {
      * @return Returns the CyNetwork for the row (gene) similarity network.
      */
     public CyNetwork calcRows(final TaskMonitor tm) {
-        rowDone = false;
-        
         if (rowNetName.equals("Gene Network"))
             nameNetwork();
         
@@ -175,7 +166,6 @@ public class CorrelateSimilarityNetwork {
      * @return
      */
     private CyNetwork calcRows(String networkName, double lowCutoff, double highCutoff, final TaskMonitor tm) {
-        rowDone = false;
         String[] geneNames = data.getGeneNames();
         DoubleMatrix2D inputMatrix = getExpressionMatrix();
         
@@ -207,8 +197,6 @@ public class CorrelateSimilarityNetwork {
     		String[] rowNames,
     		final TaskMonitor tm
     ) {
-        rowDone = false;
-        
         return calc(true, networkName, inputMatrix, lowCutoff, highCutoff, rowNames, tm);
     }
 
@@ -219,7 +207,7 @@ public class CorrelateSimilarityNetwork {
      * Defaults:
      *      The last gene expression data loaded into Cytoscape is used.
      *      The current positive and negative cutoffs are used (colNegCutoff colPosCutoff).
-     *      The use of either positie or negative correlations is determined (colUseNeg  colUsePos).
+     *      The use of either positive or negative correlations is determined (colUseNeg  colUsePos).
      *      A unique tag is appended to the current column network name.
      * <p/>
      * colCurrentSteps, colTotalSteps, and colDone are automatically adjusted.
@@ -231,8 +219,6 @@ public class CorrelateSimilarityNetwork {
      * @return Returns the CyNetwork for the column (condition) similarity network.
      */
     public CyNetwork calcCols(final TaskMonitor tm) {
-        colDone = false;
-        
         if (colNetName.equals("Cond Network"))
             nameNetwork();
         
@@ -244,7 +230,7 @@ public class CorrelateSimilarityNetwork {
      * This creates the column (condition) similarity network for all genes above the threshold.
      * <p/>
      * Defaults:
-     *      The use of either positie or negative correlations is determined (colUseNeg  colUsePos).
+     *      The use of either positive or negative correlations is determined (colUseNeg  colUsePos).
      * <p/>
      * colCurrentSteps, colTotalSteps, and colDone are automatically adjusted
      *      Used getColCurrentStep() and colIsDone() to check the current status of the calculation.
@@ -258,7 +244,6 @@ public class CorrelateSimilarityNetwork {
      * @return Returns the CyNetwork for the column (condition) similarity network.
      */
     private CyNetwork calcCols(String networkName, double lowCutoff, double highCutoff, final TaskMonitor tm) {
-        colDone = false;
         String[] condNames = data.getConditionNames();
         DoubleMatrix2D inputMatrix = getExpressionMatrix();
         
@@ -334,11 +319,6 @@ public class CorrelateSimilarityNetwork {
         if (tm != null)
             tm.setProgress(1.0);
 
-        if (isRowNetwork)
-            rowDone = true;
-        else
-            colDone = true;
-        
         cancel = false;
 
         return newNetwork;
@@ -445,8 +425,6 @@ public class CorrelateSimilarityNetwork {
         private void tempSetup() {
             //This sets up the done/step variables and inverts the row matrix
             if (isRowNetwork) {
-                rowDone = false;
-                rowCurrentStep = 0;
                 usePos = rowUsePos;
                 useNeg = rowUseNeg;
                 Algebra A = new Algebra();
@@ -457,15 +435,8 @@ public class CorrelateSimilarityNetwork {
                 else
                     rowTotalSteps = calcTimeSingle(inputMatrix);
             } else {
-                colDone = false;
-                colCurrentStep = 0;
                 usePos = colUsePos;
                 useNeg = colUseNeg;
-                
-                if (fullNetwork)
-                    colTotalSteps = calcTimeFull(inputMatrix);
-                else
-                    colTotalSteps = calcTimeSingle(inputMatrix);
             }
 
             // Converts the data into a more accessable form
@@ -475,11 +446,6 @@ public class CorrelateSimilarityNetwork {
             cols = new DoubleMatrix1D[columns];
             
             for (int i = 0; i < columns; i++) {
-                if (isRowNetwork)
-                    rowCurrentStep++;
-                else
-                    colCurrentStep++;
-                
                 cols[i] = inputMatrix.viewColumn(i);
                 sums[i] = cols[i].zSum();
                 
@@ -491,11 +457,6 @@ public class CorrelateSimilarityNetwork {
             stdDev = new DenseDoubleMatrix1D(columns);
             
             for (int i = 0; i < columns; i++) {
-                if (isRowNetwork)
-                    rowCurrentStep++;
-                else
-                    colCurrentStep++;
-                
                 double sumOfProducts = cols[i].zDotProduct(cols[i]);
                 stdDev.set(i, Math.sqrt((sumOfProducts - sums[i] * sums[i] / rows) / rows));
                 
@@ -555,11 +516,6 @@ public class CorrelateSimilarityNetwork {
         if (fullColumn) stop = data.columns;
 
         for (int j = 0; j < stop; j++) {
-            if (data.isRowNetwork)
-                rowCurrentStep++;
-            else
-                colCurrentStep++;
-
             double corr = calcPearsonCorr(data, i, j);
 
             if (corr < -1.0)
@@ -606,7 +562,7 @@ public class CorrelateSimilarityNetwork {
     }
 
     /**
-     * Calclates the number of steps to complete the row network, and set rowTotalSteps to this.
+     * Calculates the number of steps to complete the row network, and set rowTotalSteps to this.
      *
      * @return total number of steps needed to complete calc() or histogram() for a full network
      */
@@ -705,11 +661,6 @@ public class CorrelateSimilarityNetwork {
 
         for (int i = 0; i < data.columns; i++) {
             for (int j = 0; j < i; j++) {
-                if (isRowNetwork)
-                    rowCurrentStep++;
-                else
-                    colCurrentStep++;
-
                 double corr = calcPearsonCorr(data,i,j);
 
                 if (corr < -1.0)
@@ -741,12 +692,8 @@ public class CorrelateSimilarityNetwork {
 
         if (isRowNetwork) {
             rowHistogram = histo;
-            rowHistogramLabels = labels;
-            rowDone = true;
         } else {
             colHistogram = histo;
-            colHistogramLabels = labels;
-            colDone = true;
         }
     }
 
