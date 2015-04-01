@@ -2,7 +2,7 @@ package org.baderlab.expressioncorrelation.internal.model;
 
 public enum CorrelateActionType {
 	// construct both row and column
-	BUILD_NETWORK("Construct Correlation Network"),
+	BUILD_NETWORK("Construct Correlation Networks"),
 	// construct col similarity matrix using defaults
 	COND_NET_DEF("Condition Network: Using Defaults"),
 	// construct histogram + col

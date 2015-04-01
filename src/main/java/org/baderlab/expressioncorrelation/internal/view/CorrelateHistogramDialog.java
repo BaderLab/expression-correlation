@@ -134,7 +134,8 @@ public class CorrelateHistogramDialog extends JDialog {
         plotPnl.setToolBarVisible(false);
         
         // OK and Cancel options
-        final JButton okBtn = new JButton(new OKAction("Create Network"));
+        final String okName = isRow ? "Create Gene Network" : "Create Condition Network";
+        final JButton okBtn = new JButton(new OKAction(okName));
         
         final JButton cancelBtn = new JButton(new AbstractAction("Cancel") {
 			@Override

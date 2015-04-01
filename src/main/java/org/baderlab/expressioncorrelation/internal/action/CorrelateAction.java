@@ -141,7 +141,7 @@ public class CorrelateAction extends AbstractCyAction {
 
 	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> globalTables) {
 		// Get input data
-    	final InputDialog inputDialog = new InputDialog(parentFrame, serviceRegistrar);
+    	final InputDialog inputDialog = new InputDialog(parentFrame, type, serviceRegistrar);
     	inputDialog.setLocationRelativeTo(parentFrame);
     	inputDialog.setVisible(true);
 		

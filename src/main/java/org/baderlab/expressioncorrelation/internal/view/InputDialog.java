@@ -27,6 +27,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
 import org.baderlab.expressioncorrelation.internal.view.util.LookAndFeelUtil;
 import org.cytoscape.model.CyColumn;
@@ -77,7 +78,9 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 public class InputDialog extends JDialog {
 
 	private static final long serialVersionUID = 7601013329457450675L;
+	
 	private final CyServiceRegistrar serviceRegistrar;
+	private final CorrelateActionType type;
 
 	private JComboBox<CyTable> tableCmb;
 	private JComboBox<CyColumn> geneColumnCmb;
@@ -87,8 +90,13 @@ public class InputDialog extends JDialog {
 	private ExpressionData data;
 	private boolean cancelled;
 	
-	public InputDialog(final Frame parentFrame, final CyServiceRegistrar serviceRegistrar) {
+	public InputDialog(
+			final Frame parentFrame,
+			final CorrelateActionType type,
+			final CyServiceRegistrar serviceRegistrar
+	) {
 		super(parentFrame, "ExpressionCorrelation");
+		this.type = type;
 		this.serviceRegistrar = serviceRegistrar;
 		
 		setModalityType(ModalityType.APPLICATION_MODAL);
@@ -253,7 +261,18 @@ public class InputDialog extends JDialog {
 	@SuppressWarnings("serial")
 	public JButton getOkBtn() {
 		if (okBtn == null) {
-			okBtn = new JButton(new AbstractAction("OK") {
+			final String name;
+			
+			if (type == CorrelateActionType.COND_NET_PREVIEW || type == CorrelateActionType.GENE_NET_PREVIEW)
+				name = "Show Histogram";
+			else if (type == CorrelateActionType.COND_NET_DEF)
+				name = "Create Condition Network";
+			else if (type == CorrelateActionType.GENE_NET_DEF)
+				name = "Create Gene Network";
+			else
+				name = "Create Networks";
+			
+			okBtn = new JButton(new AbstractAction(name) {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (validateData()) {
