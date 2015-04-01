@@ -18,6 +18,7 @@ import org.cytoscape.view.layout.CyLayoutAlgorithm;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -327,10 +328,11 @@ public class CorrelateSimilarityNetwork {
             	tm.setProgress((double) i / data.columns);
         }
 
-        if (tm != null) {
+        serviceRegistrar.getService(CyNetworkManager.class).addNetwork(newNetwork);
+        maybeCreateNetworkView(newNetwork);
+        
+        if (tm != null)
             tm.setProgress(1.0);
-            tm.setStatusMessage("Finished constructing network");
-        }
 
         if (isRowNetwork)
             rowDone = true;
@@ -338,9 +340,6 @@ public class CorrelateSimilarityNetwork {
             colDone = true;
         
         cancel = false;
-        
-        serviceRegistrar.getService(CyNetworkManager.class).addNetwork(newNetwork);
-        maybeCreateNetworkView(newNetwork);
 
         return newNetwork;
     }
@@ -1159,10 +1158,17 @@ public class CorrelateSimilarityNetwork {
 					appMgr.getDefaultNetworkViewRenderer().getNetworkViewFactory().createNetworkView(network);
 			serviceRegistrar.getService(CyNetworkViewManager.class).addNetworkView(netView);
 			
+			applyStyle(netView);
+			
 			// Apply preferred or default layout
 			if (network.getNodeCount() > 0)
 				applyLayout(props, netView);
         }
+	}
+
+	private void applyStyle(final CyNetworkView netView) {
+		final VisualMappingManager vmMgr = serviceRegistrar.getService(VisualMappingManager.class);
+		vmMgr.getCurrentVisualStyle().apply(netView);
 	}
 
 	private void applyLayout(final Properties props, final CyNetworkView netView) {
