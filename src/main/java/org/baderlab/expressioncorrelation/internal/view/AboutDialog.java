@@ -8,6 +8,7 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;
 
+import org.baderlab.expressioncorrelation.internal.util.AppUtil;
 import org.baderlab.expressioncorrelation.internal.view.util.LookAndFeelUtil;
 
 /**
@@ -54,9 +55,12 @@ public class AboutDialog extends JDialog {
 
 	@SuppressWarnings("serial")
 	public AboutDialog(final Frame parentFrame) {
-        super(parentFrame, "About", false);
+        super(parentFrame, "About ExpressionCorrelation", false);
         setResizable(false);
 
+        final String version = AppUtil.getVersion();
+        final String buildDate = AppUtil.getBuildDate();
+        
         //main panel for dialog box
         final JEditorPane editorPane = new JEditorPane();
         editorPane.setEditable(false);
@@ -64,7 +68,7 @@ public class AboutDialog extends JDialog {
         editorPane.setText(
         		"<html><body style='margin:10px 20px;text-align:center;font-family:sans-serif;'>" +
         		"<h2>ExpressionCorrelation App</h2>" +
-        		"<h3>Version 1.1 (April 2015)</h3>" +
+        		"<h3>Version " + version + " (" + buildDate + ")</h3>" +
                 "<p>Written by Elena Potylitsine and Weston Whitaker<br />" +
         		"during the Cornell/MSKCC summer student program 2004</p>" +
                 "<p>Chris Sander Group<br />" +

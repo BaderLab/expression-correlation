@@ -15,7 +15,8 @@
 		<bundle.namespace>org.baderlab.expressioncorrelation.internal</bundle.namespace>
 		<cytoscape.api>3.2.0</cytoscape.api>
 		<project.version>1.1.0-SNAPSHOT</project.version>
-		<timestamp>${maven.build.timestamp}</timestamp>
+		<project.build.date>${maven.build.timestamp}</project.build.date>
+		<maven.build.timestamp.format>MMMM yyyy</maven.build.timestamp.format>
 	</properties>
 
 	<repositories>
