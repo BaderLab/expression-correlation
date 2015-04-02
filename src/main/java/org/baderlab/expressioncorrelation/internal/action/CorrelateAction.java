@@ -98,7 +98,7 @@ public class CorrelateAction extends AbstractCyAction {
         	
             final int answer = JOptionPane.showOptionDialog(
             		parentFrame,
-            		"<html>You must import an Expression Matrix File to an Unassigned Table first.<br>Do you want to import one now?</html>",
+            		"<html>You must import an Expression Matrix File to an <b>Unassigned Table</b> first.<br>Do you want to import one now?</html>",
             		"No Unassigned Tables",
             		JOptionPane.YES_NO_OPTION,
             		JOptionPane.INFORMATION_MESSAGE,
@@ -117,19 +117,9 @@ public class CorrelateAction extends AbstractCyAction {
 					public void taskFinished(ObservableTask task) {
 					}
 					@Override
-					public void allFinished(FinishStatus finishStatus) {
-						// Show Correlate dialog if at least one unassigned table exists
-						final Set<CyTable> globalTables = tblMgr.getGlobalTables();
-						
-						if (globalTables != null && !globalTables.isEmpty()) {
-							// Make sure it runs on the EDT
-							SwingUtilities.invokeLater(new Runnable() {
-								@Override
-								public void run() {
-									showCorrelateDialog(parentFrame, globalTables);
-								}
-							});
-						}
+					public void allFinished(final FinishStatus finishStatus) {
+						if (finishStatus.getType() == FinishStatus.Type.SUCCEEDED)
+							onTableImported(parentFrame);
 					}
 				});
             }
@@ -138,6 +128,34 @@ public class CorrelateAction extends AbstractCyAction {
         	showCorrelateDialog(parentFrame, globalTables);
         }
     }
+
+	private void onTableImported(final JFrame parentFrame) {
+		// Show Correlate dialog if at least one unassigned table exists
+		final CyTableManager tblMgr = serviceRegistrar.getService(CyTableManager.class);
+		final Set<CyTable> globalTables = tblMgr.getGlobalTables();
+		
+		if (globalTables != null && !globalTables.isEmpty()) {
+			// Make sure it runs on the EDT
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					showCorrelateDialog(parentFrame, globalTables);
+				}
+			});
+		} else {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					JOptionPane.showMessageDialog(
+		            		parentFrame,
+		            		"<html>There is no <b>Unassigned Table</b> that can be used as expression data.</html>",
+		            		"ExpressionCorrelation Error",
+		            		JOptionPane.ERROR_MESSAGE
+		            );
+				}
+			});
+		}
+	}
 
 	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> globalTables) {
 		// Get input data
