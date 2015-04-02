@@ -5,6 +5,8 @@ import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
@@ -17,8 +19,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -26,6 +26,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.baderlab.expressioncorrelation.internal.model.CorrelateActionType;
 import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
@@ -34,6 +36,7 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.util.swing.BasicCollapsiblePanel;
 
 /* * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
  * *
@@ -82,6 +85,7 @@ public class InputDialog extends JDialog {
 	private final CyServiceRegistrar serviceRegistrar;
 	private final CorrelateActionType type;
 
+	private BasicCollapsiblePanel advancedPnl;
 	private JComboBox<CyTable> tableCmb;
 	private JComboBox<CyColumn> geneColumnCmb;
 	private JList<CyColumn> conditionColumnLst;
@@ -136,8 +140,6 @@ public class InputDialog extends JDialog {
 	@SuppressWarnings("serial")
 	private void init() {
 		final JLabel tableLbl = new JLabel("Expression Data Column:", JLabel.RIGHT);
-        final JLabel geneColumnLbl = new JLabel("Gene Column:", JLabel.RIGHT);
-        final JLabel conditionColumnsLbl = new JLabel("Condition Column:", JLabel.RIGHT);
 		
         // OK and Cancel buttons
         final JButton cancelBtn = new JButton(new AbstractAction("Cancel") {
@@ -150,9 +152,6 @@ public class InputDialog extends JDialog {
         
         final JPanel buttonPnl = LookAndFeelUtil.createOkCancelPanel(getOkBtn(), cancelBtn);
         
-        // Column List ScrollPane
-        final JScrollPane conditionColumnScr = new JScrollPane(getConditionColumnLst());
-        
         // Main panel
 		final JPanel contentPane = new JPanel();
         final GroupLayout layout = new GroupLayout(contentPane);
@@ -164,15 +163,12 @@ public class InputDialog extends JDialog {
 				.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup(Alignment.LEADING, true)
 								.addComponent(tableLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(geneColumnLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(conditionColumnsLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
 						)
 						.addGroup(layout.createParallelGroup(Alignment.LEADING, true)
 								.addComponent(getTableCmb(), DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(getGeneColumnCmb(), DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(conditionColumnScr, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
 						)
 				)
+				.addComponent(getAdvancedPnl())
 				.addComponent(buttonPnl)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -180,14 +176,7 @@ public class InputDialog extends JDialog {
 						.addComponent(tableLbl)
 						.addComponent(getTableCmb())
 				)
-				.addGroup(layout.createParallelGroup(Alignment.CENTER, false)
-						.addComponent(geneColumnLbl)
-						.addComponent(getGeneColumnCmb())
-				)
-				.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(conditionColumnsLbl)
-						.addComponent(conditionColumnScr)
-				)
+				.addComponent(getAdvancedPnl())
 				.addComponent(buttonPnl)
 		);
         
@@ -196,6 +185,54 @@ public class InputDialog extends JDialog {
         LookAndFeelUtil.setDefaultOkCancelKeyStrokes(getRootPane(), getOkBtn().getAction(), cancelBtn.getAction());
         getRootPane().setDefaultButton(getOkBtn());
         pack();
+	}
+	
+	public JPanel getAdvancedPnl() {
+		if (advancedPnl == null) {
+			advancedPnl = new BasicCollapsiblePanel("Advanced Options");
+			
+			// Labels
+			final JLabel geneColumnLbl = new JLabel("Gene Column:", JLabel.RIGHT);
+	        final JLabel conditionColumnsLbl = new JLabel("Condition Columns:", JLabel.RIGHT);
+	        
+	        // Column List ScrollPane
+	        final JScrollPane conditionColumnScr = new JScrollPane(getConditionColumnLst());
+			
+	        final GroupLayout layout = new GroupLayout(advancedPnl.getContentPane());
+	        advancedPnl.getContentPane().setLayout(layout);
+			layout.setAutoCreateContainerGaps(true);
+			layout.setAutoCreateGaps(true);
+			
+			layout.setHorizontalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(Alignment.LEADING, true)
+							.addComponent(geneColumnLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(conditionColumnsLbl, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+					)
+					.addGroup(layout.createParallelGroup(Alignment.LEADING, true)
+							.addComponent(getGeneColumnCmb(), DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(conditionColumnScr, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+					)
+			);
+			layout.setVerticalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(Alignment.CENTER, false)
+							.addComponent(geneColumnLbl)
+							.addComponent(getGeneColumnCmb())
+					)
+					.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+							.addComponent(conditionColumnsLbl)
+							.addComponent(conditionColumnScr)
+					)
+			);
+			
+			advancedPnl.addPropertyChangeListener(new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent e) {
+					pack();
+				}
+			});
+		}
+		
+		return advancedPnl;
 	}
 	
 	private JComboBox<CyTable> getTableCmb() {
@@ -297,6 +334,27 @@ public class InputDialog extends JDialog {
 		for (final CyColumn col : allColumns) {
 			if (col.getType() == String.class)
 				model.addElement(col);
+		}
+		
+		// Try to select the best column for gene names
+		final String[] tokens = new String[] { "genename", "gene", "name" };
+		
+		// First pass: Look for exact column name
+		// Second pass: Select column whose name contains one of the tokens
+		for (int count = 0; count < 2; count++) {
+			for (int i = 0; i < model.getSize(); i++) {
+				final CyColumn col = model.getElementAt(i);
+				// Remove all special chars and spaces from column name
+				final String name = col.getName().replaceAll("[^a-zA-Z]", "").toLowerCase();
+				
+				for (final String s : tokens) {
+					if ( (count == 0 && name.equals(s)) ||
+						 (count == 1 && name.contains(s)) ) {
+						model.setSelectedItem(col);
+						return;
+					}
+				}
+			}
 		}
 	}
 	
