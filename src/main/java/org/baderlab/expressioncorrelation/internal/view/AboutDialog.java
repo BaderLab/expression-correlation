@@ -66,15 +66,25 @@ public class AboutDialog extends JDialog {
         editorPane.setEditable(false);
         editorPane.setEditorKit(new HTMLEditorKit());
         editorPane.setText(
-        		"<html><body style='margin:10px 20px;text-align:center;font-family:sans-serif;'>" +
-        		"<h2>ExpressionCorrelation App</h2>" +
-        		"<h3>Version " + version + " (" + buildDate + ")</h3>" +
-                "<p>Written by Elena Potylitsine and Weston Whitaker<br />" +
-        		"during the Cornell/MSKCC summer student program 2004</p>" +
-                "<p>Chris Sander Group<br />" +
+        		"<html><body style='margin:0px 40px 20px 40px;font-family:sans-serif;font-size:10px;color:#333333'>" +
+        		"<p style='text-align:center;font-size:14px;'><b>ExpressionCorrelation App</b><br />" +
+        		"<span style='font-size:10px;'>Version " + version + " (" + buildDate + ")</span></p>" +
+        		"<p />" +
+                "<p>Original code by <i>Elena Potylitsine</i> and <i>Weston Whitaker</i><br />" +
+        		"during the Cornell/MSKCC summer student program 2004 as part of:<br />" +
+                "<p style='text-align:center;'><b>Chris Sander Group</b><br />" +
                 "Computational Biology Center<br />" +
                 "Memorial Sloan-Kettering Cancer Center<br />" +
-                "New York City</p></body></html>"
+                "New York City</p>" +
+                "<p />" +
+                "<p>Post-2006, maintained by:</p>" +
+                "<p style='text-align:center;'><b>Bader Lab</b><br />" +
+        		"The Donnelly Centre<br />" +
+                "University of Toronto</p>" +
+        		"<p />" +
+        		"<p>- Updated for Cytoscape 2.6 by <i>Shirley Hui</i> in 2007<br />" +
+                "- Ported to Cytoscape 3 by <i>Christian Lopes</i> in 2015</p>" +
+                "</body></html>"
         );
         
         setContentPane(editorPane);
