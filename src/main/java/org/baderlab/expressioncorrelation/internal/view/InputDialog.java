@@ -337,21 +337,23 @@ public class InputDialog extends JDialog {
 		}
 		
 		// Try to select the best column for gene names
-		final String[] tokens = new String[] { "genename", "gene", "name" };
-		
-		// First pass: Look for exact column name
-		// Second pass: Select column whose name contains one of the tokens
-		for (int count = 0; count < 2; count++) {
-			for (int i = 0; i < model.getSize(); i++) {
-				final CyColumn col = model.getElementAt(i);
-				// Remove all special chars and spaces from column name
-				final String name = col.getName().replaceAll("[^a-zA-Z]", "").toLowerCase();
-				
-				for (final String s : tokens) {
-					if ( (count == 0 && name.equals(s)) ||
-						 (count == 1 && name.contains(s)) ) {
-						model.setSelectedItem(col);
-						return;
+		if (model.getSize() > 1) {
+			final String[] tokens = new String[] { "genename", "gene", "name" };
+			
+			// First pass: Look for exact column name
+			// Second pass: Select column whose name contains one of the tokens
+			for (int count = 0; count < 2; count++) {
+				for (int i = 0; i < model.getSize(); i++) {
+					final CyColumn col = model.getElementAt(i);
+					// Remove all special chars and spaces from column name
+					final String name = col.getName().replaceAll("[^a-zA-Z]", "").toLowerCase();
+					
+					for (final String s : tokens) {
+						if ( (count == 0 && name.equals(s)) ||
+							 (count == 1 && name.contains(s)) ) {
+							model.setSelectedItem(col);
+							return;
+						}
 					}
 				}
 			}
@@ -369,6 +371,9 @@ public class InputDialog extends JDialog {
 			if (Number.class.isAssignableFrom(col.getType()))
 				model.addElement(col);
 		}
+		
+		if (!model.isEmpty())
+			getConditionColumnLst().getSelectionModel().addSelectionInterval(0, model.size() - 1);
 	}
 	
 	private void updateOkBtn() {
