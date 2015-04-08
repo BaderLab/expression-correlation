@@ -48,37 +48,37 @@ import org.cytoscape.work.TaskMonitor;
 
 
 /**
- * This class represents a task that calls methods to calculate a correlation network
+ * This class represents a task that calls methods to calculate a correlation csNetwork
  */
 public class CorrelateTask implements Task {
 
     /**
      * Sets which type thread to run and time
      * case 1: Run and time both the column and row networks
-     * case 2: Run and time the column network
+     * case 2: Run and time the column csNetwork
      * case 3: Run and time the column histogram
-     * case 4: Run and time the row network
+     * case 4: Run and time the row csNetwork
      * case 5: Run and time the row histogram
      */
     private final CorrelateActionType type;
-    private final CorrelateSimilarityNetwork network;
+    private final CorrelateSimilarityNetwork csNetwork;
 	private final CyServiceRegistrar serviceRegistrar;
 
     /**
      * Constructor.
      *
      * @param type Indicates which type to run.
-     * @param network The network upon which to calculate correlations
+     * @param csNetwork The csNetwork upon which to calculate correlations
      */
-    public CorrelateTask(final CorrelateActionType type, final CorrelateSimilarityNetwork network,
+    public CorrelateTask(final CorrelateActionType type, final CorrelateSimilarityNetwork csNetwork,
     		final CyServiceRegistrar serviceRegistrar) {
         this.type = type;
-        this.network = network;
+        this.csNetwork = csNetwork;
         this.serviceRegistrar = serviceRegistrar;
     }
 
     /**
-     * Perform the correlation calculations on the network.
+     * Perform the correlation calculations on the csNetwork.
      */
     @Override
 	public void run(final TaskMonitor tm) throws Exception {
@@ -96,12 +96,12 @@ public class CorrelateTask implements Task {
                 rowRun(tm);
                 break;
             case COND_NET_PREVIEW:
-            	network.loadColCutoffs(); // Loads previously saved user column cutoffs from the singleton class
-            	network.colHistogram(tm);
+            	csNetwork.loadColCutoffs(); // Loads previously saved user column cutoffs from the singleton class
+            	csNetwork.colHistogram(tm);
             	break;
             case GENE_NET_PREVIEW:
-            	network.loadRowCutoffs(); // Loads previously saved user row cutoffs from the singleton class
-            	network.rowHistogram(tm);
+            	csNetwork.loadRowCutoffs(); // Loads previously saved user row cutoffs from the singleton class
+            	csNetwork.rowHistogram(tm);
 			default:
 				break;
         }
@@ -122,9 +122,9 @@ public class CorrelateTask implements Task {
      * The condition matrix calculation
      */
 	private void colRun(final TaskMonitor tm) {
-		final CyNetwork net = network.calcCols(tm);
+		final CyNetwork net = csNetwork.calcCols(tm);
 
-		if (network.cancelled())
+		if (csNetwork.cancelled())
 			destroy(net);
 	}
 
@@ -132,14 +132,14 @@ public class CorrelateTask implements Task {
 	 * The gene matrix calculation
 	 */
 	private void rowRun(final TaskMonitor tm) {
-		final CyNetwork net = network.calcRows(tm);
+		final CyNetwork net = csNetwork.calcRows(tm);
 
-		if (network.cancelled())
+		if (csNetwork.cancelled())
 			destroy(net);
 	}
 
 	@Override
 	public void cancel() {
-		network.cancel();
+		csNetwork.cancel();
 	}
 }

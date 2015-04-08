@@ -128,8 +128,8 @@ public class CorrelateAction extends AbstractCyAction {
         	if (tables.size() == 1) {
         		// Only one table--try to run the correlate task with the default options right away
         		final ExpressionData data = ExpressionData.createDefault(tables.iterator().next());
-        		final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
-        		maybeRunCorrelateTask(parentFrame, network);
+        		final CorrelateSimilarityNetwork csNetwork = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+        		maybeRunCorrelateTask(parentFrame, csNetwork);
         	} else {
         		// Two or more tables--Let the user choose one
 	        	// (still running on the EDT)
@@ -147,8 +147,8 @@ public class CorrelateAction extends AbstractCyAction {
         	if (tables.size() == 1) {
         		// Only one table (the expected result): Try to run the correlate task with the default options
         		final ExpressionData data = ExpressionData.createDefault(tables.iterator().next());
-        		final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
-        		maybeRunCorrelateTask(parentFrame, network);
+        		final CorrelateSimilarityNetwork csNetwork = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+        		maybeRunCorrelateTask(parentFrame, csNetwork);
         	} else {
         		// Two or more tables--Let the user choose one (it should not happen here!)
 				// Make sure it runs on the EDT
@@ -186,13 +186,13 @@ public class CorrelateAction extends AbstractCyAction {
 		if (data == null)
 			return;
 		
-    	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
-        maybeRunCorrelateTask(parentFrame, network);
+    	final CorrelateSimilarityNetwork csNetwork = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+        maybeRunCorrelateTask(parentFrame, csNetwork);
 	}
 
-	private void maybeRunCorrelateTask(final JFrame parentFrame, final CorrelateSimilarityNetwork network) {
-		int colNumber = network.getNumberOfCols(); // number of conditions in the condition network
-        int rowNumber = network.getNumberOfRows();
+	private void maybeRunCorrelateTask(final JFrame parentFrame, final CorrelateSimilarityNetwork csNetwork) {
+		int colNumber = csNetwork.getNumberOfCols(); // number of conditions in the condition network
+        int rowNumber = csNetwork.getNumberOfRows();
         int selectedOption = JOptionPane.OK_OPTION;
 
         if (rowNumber < 4 && (type == BUILD_NETWORK || type == COND_NET_PREVIEW || type == COND_NET_DEF)) {
@@ -231,7 +231,7 @@ public class CorrelateAction extends AbstractCyAction {
         // Continue if not canceled
         if (selectedOption == JOptionPane.OK_OPTION) {
             // Create a Correlate Task
-            final Task task = new CorrelateTask(type, network, serviceRegistrar);
+            final Task task = new CorrelateTask(type, csNetwork, serviceRegistrar);
 
             // Execute Task via TaskManager
             final DialogTaskManager taskMgr = serviceRegistrar.getService(DialogTaskManager.class);
@@ -253,7 +253,7 @@ public class CorrelateAction extends AbstractCyAction {
 				        		final CorrelateHistogramDialog histogram = new CorrelateHistogramDialog(
 				        				parentFrame,
 				        				(type == GENE_NET_PREVIEW),
-				        				network,
+				        				csNetwork,
 				        				serviceRegistrar
 				        		);
 				        		histogram.pack();
@@ -261,6 +261,14 @@ public class CorrelateAction extends AbstractCyAction {
 				        		histogram.setVisible(true);
 							}
 						});
+		        	} else if (csNetwork.getWarningMessage() != null) {
+		        		// Display the warning message
+		        		JOptionPane.showMessageDialog(
+		                		parentFrame,
+		                		csNetwork.getWarningMessage(),
+		                		"ExpressionCorrelation",
+		                		JOptionPane.WARNING_MESSAGE
+		                );
 		        	}
 				}
 			});

@@ -99,6 +99,8 @@ public class CorrelateSimilarityNetwork {
     private boolean cancel;     //This will cancel the current loop in calc() or histogram(). To use call cancel().
     							//      The cancel value will automatically be reset to false
     
+    private String warningMessage;
+    
     private final ExpressionData data;
     private final CyServiceRegistrar serviceRegistrar;
 	
@@ -110,6 +112,14 @@ public class CorrelateSimilarityNetwork {
 		this.serviceRegistrar = serviceRegistrar;
 	}
 
+	public ExpressionData getExpressionData() {
+		return data;
+	}
+	
+	public String getWarningMessage() {
+		return warningMessage;
+	}
+	
     /**
      * This gives the network the name of the expression data file.
      */
@@ -267,12 +277,13 @@ public class CorrelateSimilarityNetwork {
 			double lowCutoff,
 			double highCutoff,
 			String[] names,
-			final TaskMonitor tm) {
+			final TaskMonitor tm
+	) {
         // When creating the network, don't automatically create the network view
-		final CyNetwork newNetwork = createNetwork(networkName);
+		final CyNetwork net = createNetwork(networkName);
 
         // Does some initial calculations and stores all the calculation data
-        final InitiationData data = new InitiationData(isRowNetwork, inputMatrix, true);
+        final InitiationData initData = new InitiationData(isRowNetwork, inputMatrix, true);
 
         // Checks to see that cutoffs make sense
         double[] cutoffs = cutoffCheck(isRowNetwork, lowCutoff, highCutoff);
@@ -280,8 +291,8 @@ public class CorrelateSimilarityNetwork {
         highCutoff = cutoffs[1];
 
         // A calculation needed for the command line/text progress bar
-        int mod = data.columns % 10;
-        if (data.columns <= 10) mod = 0;
+        int mod = initData.columns % 10;
+        if (initData.columns <= 10) mod = 0;
 
         // The loop below is the main step. Here the Pearson Correlation Coefficient is calculated
         //  note: only the top half of the rectangle is calculated since the matrix is symmetric
@@ -298,30 +309,30 @@ public class CorrelateSimilarityNetwork {
                 type = "gene";
             
             tm.setProgress(0.0);
-            tm.setStatusMessage("Constructing " + type + " correlation network...");
+            tm.setStatusMessage("Constructing " + type + " correlation network from " + data.getName() +  "...");
         }
 
         // Goes through each column
-        for (int i = 0; i < data.columns; i++) {
+        for (int i = 0; i < initData.columns; i++) {
             // Calculates the correlations for a single column
-            core(newNetwork, data, i, lowCutoff, highCutoff, names, false);
+            core(net, initData, i, lowCutoff, highCutoff, names, false);
             
             if (cancel)
-                return newNetwork;
+                return net;
 
-            if (tm != null && (i * 10) % (data.columns - mod) == 0)
-            	tm.setProgress((double) i / data.columns);
+            if (tm != null && (i * 10) % (initData.columns - mod) == 0)
+            	tm.setProgress((double) i / initData.columns);
         }
 
-        serviceRegistrar.getService(CyNetworkManager.class).addNetwork(newNetwork);
-        maybeCreateNetworkView(newNetwork);
+        serviceRegistrar.getService(CyNetworkManager.class).addNetwork(net);
+        maybeCreateNetworkView(net);
         
         if (tm != null)
             tm.setProgress(1.0);
 
         cancel = false;
 
-        return newNetwork;
+        return net;
     }
 
     /**
@@ -484,9 +495,8 @@ public class CorrelateSimilarityNetwork {
                 lowCutoff = colNegCutoff;
                 highCutoff = colPosCutoff;
             }
-// TODO            
-//            String message = "Unrealistic lowCutoff or highCutoff values. " + '\n' + "Using default values: lowCutoff=" + lowCutoff + ", highCutoff=" + highCutoff;
-//            JOptionPane.showMessageDialog(Cytoscape.getDesktop(), message);
+            
+            warningMessage = "Unrealistic Low or High Cutoff values. Used default values: " + lowCutoff + ", " + highCutoff;
         }
         
         if (lowCutoff > 0)
@@ -502,7 +512,7 @@ public class CorrelateSimilarityNetwork {
     /**
      * This calculates the correlation for a single column and creates the necessary nodes and edges
      *
-     * @param newNetwork - the network where the nodes/egdes should be created
+     * @param net - the network where the nodes/egdes should be created
      * @param data       - this InitiationData should contain much of the necessary information
      * @param i          - the column for which the correlation should be calculated
      * @param lowCutoff  - To work properly: -1 <= lowCutoff <= 0  (default = -0.9)
@@ -510,7 +520,8 @@ public class CorrelateSimilarityNetwork {
      * @param names      - String of column names with the corresponding index for the expression matrix
      * @param fullColumn - if false, only the top triangle of the correlation matrix will be calculated
      */
-    private void core(CyNetwork newNetwork, InitiationData data, int i, double lowCutoff, double highCutoff, String[] names, boolean fullColumn) {
+    private void core(final CyNetwork net, final InitiationData data, int i, double lowCutoff, double highCutoff,
+    		String[] names, boolean fullColumn) {
         // Calculates the entire column
         int stop = i;
         if (fullColumn) stop = data.columns;
@@ -523,11 +534,11 @@ public class CorrelateSimilarityNetwork {
 
             // Creates nodes and edges if its above the positive cutoff
             if (corr > highCutoff && i != j && data.usePos)
-                createEdge(newNetwork, i, j, names, corr);
+                createEdge(net, i, j, names, corr);
 
             // Creates nodes and edges if its below the negative cutoff
             if (corr < lowCutoff && data.useNeg)
-                createEdge(newNetwork, i, j, names, corr);
+                createEdge(net, i, j, names, corr);
             
             if (cancel)
                 return;
@@ -639,15 +650,15 @@ public class CorrelateSimilarityNetwork {
      * @param inputMatrix  - The expression data
      */
     private void histogram(boolean isRowNetwork, DoubleMatrix2D inputMatrix, final TaskMonitor tm) {
-        InitiationData data = new InitiationData(isRowNetwork, inputMatrix, true);
+        final InitiationData initData = new InitiationData(isRowNetwork, inputMatrix, true);
 
         int bins = 2000;      //Adjust this number to change the histogram accuracy
         //  bins size = 2/bins (e.g. 2000 bins -> bin size = 0.001)
         int[] histo = new int[bins];
 
         //A calculation needed for the command line/text progress bar
-        int mod = data.columns % 10;
-        if (data.columns <= 10) mod = 0;
+        int mod = initData.columns % 10;
+        if (initData.columns <= 10) mod = 0;
 
         if (tm != null) {
             String type = "condition";
@@ -656,12 +667,12 @@ public class CorrelateSimilarityNetwork {
                 type = "gene";
 
             tm.setProgress(0.0);
-            tm.setStatusMessage("Constructing  " + type + " correlation histogram...");
+            tm.setStatusMessage("Constructing " + type + " correlation histogram from " + data.getName() +  "...");
         }
 
-        for (int i = 0; i < data.columns; i++) {
+        for (int i = 0; i < initData.columns; i++) {
             for (int j = 0; j < i; j++) {
-                double corr = calcPearsonCorr(data,i,j);
+                double corr = calcPearsonCorr(initData,i,j);
 
                 if (corr < -1.0)
                     continue;
@@ -675,14 +686,12 @@ public class CorrelateSimilarityNetwork {
                     return;
             }
             
-            if (tm != null && (i * 10) % (data.columns - mod) == 0)
-            	tm.setProgress((double) i / data.columns);
+            if (tm != null && (i * 10) % (initData.columns - mod) == 0)
+            	tm.setProgress((double) i / initData.columns);
         }
 
-        if (tm != null) {
+        if (tm != null)
             tm.setProgress(1.0);
-            tm.setStatusMessage("Finished constructing histogram");
-        }
         
         String[] labels = new String[bins];
 
@@ -690,11 +699,10 @@ public class CorrelateSimilarityNetwork {
             labels[i] = "" + format(-1 + ((double) i) / (((double) bins) / 2));
         }
 
-        if (isRowNetwork) {
+        if (isRowNetwork)
             rowHistogram = histo;
-        } else {
+        else
             colHistogram = histo;
-        }
     }
 
     /**
