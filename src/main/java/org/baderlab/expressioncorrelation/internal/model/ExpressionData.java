@@ -2,6 +2,8 @@ package org.baderlab.expressioncorrelation.internal.model;
 
 import java.util.List;
 
+import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 
@@ -18,6 +20,8 @@ public class ExpressionData {
 	public ExpressionData(final CyTable table, final String geneColumnName, final String[] conditionNames) {
 		if (table == null)
 			throw new IllegalArgumentException("'table' argument is null");
+		if (!isValidExpressionData(table))
+			throw new IllegalArgumentException("'table' cannot represent valid expression data");
 		if (geneColumnName == null)
 			throw new IllegalArgumentException("'geneColumnName' argument is null");
 		if (table.getColumn(geneColumnName) == null)
@@ -73,6 +77,30 @@ public class ExpressionData {
 		}
 		
 		return allValues;
+	}
+	
+	public static boolean isValidExpressionData(final CyTable table) {
+		if (table != null) {
+			boolean hasName = false;
+			boolean hasCondition = false;
+			
+			for (final CyColumn col : table.getColumns()) {
+				if (hasName == false && col.getType() == String.class)
+					hasName = true;
+				else if (hasCondition == false && isValidConditionColumn(col))
+					hasCondition = true;
+				
+				if (hasName && hasCondition)
+					return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static boolean isValidConditionColumn(final CyColumn col) {
+		return Number.class.isAssignableFrom(col.getType()) && 
+				!col.getName().equals(CyIdentifiable.SUID) && !col.getName().endsWith(".SUID");
 	}
 	
 	private void init() {

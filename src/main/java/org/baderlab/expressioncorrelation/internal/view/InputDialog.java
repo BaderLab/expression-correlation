@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.Collator;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -34,8 +35,6 @@ import org.baderlab.expressioncorrelation.internal.model.ExpressionData;
 import org.baderlab.expressioncorrelation.internal.view.util.LookAndFeelUtil;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
-import org.cytoscape.model.CyTableManager;
-import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.BasicCollapsiblePanel;
 
 /* * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
@@ -82,8 +81,8 @@ public class InputDialog extends JDialog {
 
 	private static final long serialVersionUID = 7601013329457450675L;
 	
-	private final CyServiceRegistrar serviceRegistrar;
 	private final CorrelateActionType type;
+	private final Collection<CyTable> tables;
 
 	private BasicCollapsiblePanel advancedPnl;
 	private JComboBox<CyTable> tableCmb;
@@ -97,11 +96,11 @@ public class InputDialog extends JDialog {
 	public InputDialog(
 			final Frame parentFrame,
 			final CorrelateActionType type,
-			final CyServiceRegistrar serviceRegistrar
+			final Collection<CyTable> tables
 	) {
 		super(parentFrame, "ExpressionCorrelation");
 		this.type = type;
-		this.serviceRegistrar = serviceRegistrar;
+		this.tables = tables;
 		
 		setModalityType(ModalityType.APPLICATION_MODAL);
         setResizable(false);
@@ -247,7 +246,7 @@ public class InputDialog extends JDialog {
 					return collator.compare(t1.getTitle(), t2.getTitle());
 				}
 			});
-			globalTables.addAll(serviceRegistrar.getService(CyTableManager.class).getGlobalTables());
+			globalTables.addAll(tables);
 			
 			model.removeAllElements();
 			
@@ -368,7 +367,7 @@ public class InputDialog extends JDialog {
 		model.removeAllElements();
 		
 		for (final CyColumn col : allColumns) {
-			if (Number.class.isAssignableFrom(col.getType()))
+			if (ExpressionData.isValidConditionColumn(col))
 				model.addElement(col);
 		}
 		

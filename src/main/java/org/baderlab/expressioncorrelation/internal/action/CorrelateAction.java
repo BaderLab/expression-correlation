@@ -7,6 +7,7 @@ import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionT
 import static org.baderlab.expressioncorrelation.internal.model.CorrelateActionType.GENE_NET_PREVIEW;
 
 import java.awt.event.ActionEvent;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -88,11 +89,10 @@ public class CorrelateAction extends AbstractCyAction {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
         final JFrame parentFrame = serviceRegistrar.getService(CySwingApplication.class).getJFrame();
-        final CyTableManager tblMgr = serviceRegistrar.getService(CyTableManager.class);
-		final Set<CyTable> globalTables = tblMgr.getGlobalTables();
+		final Set<CyTable> tables = getValidGlobalTables();
         
-		// First check there is at least one unassigned table        
-        if (globalTables == null || globalTables.isEmpty()) {
+		// First check if there is at least one valid unassigned table        
+        if (tables.isEmpty()) {
         	// No tables: Ask the user to import one first...
         	final Object[] options = new Object[]{ "Yes, Import Table", "Cancel" };
         	
@@ -125,21 +125,20 @@ public class CorrelateAction extends AbstractCyAction {
             }
         } else {
         	// Still running on the EDT
-        	showCorrelateDialog(parentFrame, globalTables);
+        	showCorrelateDialog(parentFrame, tables);
         }
     }
 
 	private void onTableImported(final JFrame parentFrame) {
-		// Show Correlate dialog if at least one unassigned table exists
-		final CyTableManager tblMgr = serviceRegistrar.getService(CyTableManager.class);
-		final Set<CyTable> globalTables = tblMgr.getGlobalTables();
+		// Show Correlate dialog if at least one valid unassigned table exists
+		final Set<CyTable> tables = getValidGlobalTables();
 		
-		if (globalTables != null && !globalTables.isEmpty()) {
+		if (!tables.isEmpty()) {
 			// Make sure it runs on the EDT
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					showCorrelateDialog(parentFrame, globalTables);
+					showCorrelateDialog(parentFrame, tables);
 				}
 			});
 		} else {
@@ -157,9 +156,9 @@ public class CorrelateAction extends AbstractCyAction {
 		}
 	}
 
-	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> globalTables) {
+	private void showCorrelateDialog(final JFrame parentFrame, final Set<CyTable> tables) {
 		// Get input data
-    	final InputDialog inputDialog = new InputDialog(parentFrame, type, serviceRegistrar);
+    	final InputDialog inputDialog = new InputDialog(parentFrame, type, tables);
     	inputDialog.setLocationRelativeTo(parentFrame);
     	inputDialog.setVisible(true);
 		
@@ -245,5 +244,18 @@ public class CorrelateAction extends AbstractCyAction {
 				}
 			});
         }
+	}
+	
+	private Set<CyTable> getValidGlobalTables() {
+		final Set<CyTable> tables = new HashSet<>();
+		final CyTableManager tblMgr = serviceRegistrar.getService(CyTableManager.class);
+		final Set<CyTable> globalTables = tblMgr.getGlobalTables();
+		
+		for (final CyTable t : globalTables) {
+			if (ExpressionData.isValidExpressionData(t))
+				tables.add(t);
+		}
+		
+		return tables;
 	}
 }
