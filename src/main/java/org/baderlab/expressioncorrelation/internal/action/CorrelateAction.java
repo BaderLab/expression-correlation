@@ -124,8 +124,17 @@ public class CorrelateAction extends AbstractCyAction {
 				});
             }
         } else {
-        	// Still running on the EDT
-        	showCorrelateDialog(parentFrame, tables);
+        	// Only show the input dialog if there is more than one valid table to choose from
+        	if (tables.size() == 1) {
+        		// Only one table--try to run the correlate task with the default options right away
+        		final ExpressionData data = ExpressionData.createDefault(tables.iterator().next());
+        		final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+        		maybeRunCorrelateTask(parentFrame, network);
+        	} else {
+        		// Two or more tables--Let the user choose one
+	        	// (still running on the EDT)
+	        	showCorrelateDialog(parentFrame, tables);
+        	}
         }
     }
 
@@ -134,13 +143,22 @@ public class CorrelateAction extends AbstractCyAction {
 		final Set<CyTable> tables = getValidGlobalTables();
 		
 		if (!tables.isEmpty()) {
-			// Make sure it runs on the EDT
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					showCorrelateDialog(parentFrame, tables);
-				}
-			});
+			// Only show the input dialog if there is more than one valid table to choose from
+        	if (tables.size() == 1) {
+        		// Only one table (the expected result): Try to run the correlate task with the default options
+        		final ExpressionData data = ExpressionData.createDefault(tables.iterator().next());
+        		final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
+        		maybeRunCorrelateTask(parentFrame, network);
+        	} else {
+        		// Two or more tables--Let the user choose one (it should not happen here!)
+				// Make sure it runs on the EDT
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						showCorrelateDialog(parentFrame, tables);
+					}
+				});
+        	}
 		} else {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
@@ -169,8 +187,11 @@ public class CorrelateAction extends AbstractCyAction {
 			return;
 		
     	final CorrelateSimilarityNetwork network = new CorrelateSimilarityNetwork(data, serviceRegistrar);
-    	
-        int colNumber = network.getNumberOfCols(); // number of conditions in the condition network
+        maybeRunCorrelateTask(parentFrame, network);
+	}
+
+	private void maybeRunCorrelateTask(final JFrame parentFrame, final CorrelateSimilarityNetwork network) {
+		int colNumber = network.getNumberOfCols(); // number of conditions in the condition network
         int rowNumber = network.getNumberOfRows();
         int selectedOption = JOptionPane.OK_OPTION;
 

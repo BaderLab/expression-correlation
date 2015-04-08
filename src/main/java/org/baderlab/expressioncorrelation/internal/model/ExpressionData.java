@@ -1,5 +1,6 @@
 package org.baderlab.expressioncorrelation.internal.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.cytoscape.model.CyColumn;
@@ -96,6 +97,52 @@ public class ExpressionData {
 		}
 		
 		return false;
+	}
+	
+	public static ExpressionData createDefault(final CyTable table) {
+		final CyColumn geneColumn = getDefaultGeneColumn(table);
+		final String[] conditionNames = getDefaultConditionNames(table);
+		
+		return new ExpressionData(table, geneColumn.getName(), conditionNames);
+	}
+	
+	public static CyColumn getDefaultGeneColumn(final CyTable table) {
+		// Preferred column names for the gene column
+		final String[] tokens = new String[] { "genename", "gene", "name" };
+		
+		// First pass: Look for exact column name
+		// Second pass: Select column whose name contains one of the tokens
+		// Third pass: Just return the first String typed column
+		for (int count = 0; count < 3; count++) {
+			for (final CyColumn col : table.getColumns()) {
+				if (col.getType() != String.class)
+					continue;
+				
+				if (count == 2)
+					return col;
+				
+				// Remove all special chars and spaces from column name
+				final String name = col.getName().replaceAll("[^a-zA-Z]", "").toLowerCase();
+				
+				for (final String s : tokens) {
+					if ( (count == 0 && name.equals(s)) || (count == 1 && name.contains(s)) )
+						return col;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static String[] getDefaultConditionNames(final CyTable table) {
+		final List<String> names = new ArrayList<>();
+		
+		for (final CyColumn col : table.getColumns()) {
+			if (isValidConditionColumn(col))
+				names.add(col.getName());
+		}
+		
+		return names.toArray(new String[names.size()]);
 	}
 	
 	public static boolean isValidConditionColumn(final CyColumn col) {
