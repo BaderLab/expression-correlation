@@ -37,7 +37,8 @@ import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.jmathplot.gui.Plot2DPanel;
 
-/* * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+/*
+ * * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Elena Potylitsine
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker
@@ -65,19 +66,16 @@ import org.jmathplot.gui.Plot2DPanel;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * *
- * * User: Elena Potylitsine
- * * Date: Jul 7, 2004
- * * Time: 3:35:11 PM
- * * Description: CorrelateHistogramDialog displayes the expression data distribution.
- * * In the histogram window the user can select the low and high cutoffs by manually
- * * typing them into the appropriate "Cutoff" text boxes.
- * * The user can choose to use only one set of cutoffs by deselecting the "low" or "high" checkbox.
- * * The user can select the number or percent of interactions to be displayed
- * * by typing into the "Enter" text box and choosing "Number of Interactions" or "Percent of Interactions".
-*/
+ */
 
-
+/**
+ * CorrelateHistogramDialog displays the expression data distribution.
+ * In the histogram window the user can select the low and high cutoffs by manually
+ * typing them into the appropriate "Cutoff" text boxes.
+ * The user can choose to use only one set of cutoffs by deselecting the "low" or "high" checkbox.
+ * The user can select the number or percent of interactions to be displayed
+ * by typing into the "Enter" text box and choosing "Number of Interactions" or "Percent of Interactions".
+ */
 public class CorrelateHistogramDialog extends JDialog {
 
 	private static final long serialVersionUID = 5187881970988735283L;

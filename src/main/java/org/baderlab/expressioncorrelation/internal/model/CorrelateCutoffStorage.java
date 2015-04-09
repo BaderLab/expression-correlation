@@ -1,6 +1,6 @@
 package org.baderlab.expressioncorrelation.internal.model;
 
-/* * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+/* * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Weston Whitaker
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker
@@ -28,13 +28,11 @@ package org.baderlab.expressioncorrelation.internal.model;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * Created by IntelliJ IDEA.
- * User: weston
- * Date: Jul 27, 2004
- * Time: 2:38:37 PM
- * *Description: Stores the cuttoffs selected between plugin executions for the same session of Cytoscape
 */
 
+/**
+ * Stores the cuttoffs selected between plugin executions for the same session of Cytoscape.
+ */
 public class CorrelateCutoffStorage {
 	
     private static final CorrelateCutoffStorage _theInstance = new CorrelateCutoffStorage();

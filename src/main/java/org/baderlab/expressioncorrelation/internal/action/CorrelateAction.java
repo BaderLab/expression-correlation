@@ -34,7 +34,7 @@ import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 /**
- * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+ * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Elena Potylitsine
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker

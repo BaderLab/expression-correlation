@@ -10,8 +10,8 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
-/**
- * * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+/*
+ * * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Gary Bader
  * *
@@ -38,11 +38,6 @@ import org.cytoscape.service.util.CyServiceRegistrar;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * *
- * * User: Gary Bader
- * * Date: Jun 25, 2004
- * * Time: 5:38:52 PM
- * * Description: The action to show the About dialog box
  */
 
 /**

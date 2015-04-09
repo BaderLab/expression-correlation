@@ -29,9 +29,8 @@ import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 
-
-/**
- * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+/*
+ * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Weston Whitaker
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker
@@ -59,14 +58,11 @@ import cern.colt.matrix.linalg.Algebra;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * *
- * User: weston
- * Date: Jul 7, 2004
- * Time: 4:06:15 PM
- * <br>
- * Methods for converting gene expression data into networks in Cytoscape
  */
 
+/**
+ * Methods for converting gene expression data into networks in Cytoscape.
+ */
 public class CorrelateSimilarityNetwork {
 
     // Variables for the Row  Similarity Matrix (rows usually represent genes)

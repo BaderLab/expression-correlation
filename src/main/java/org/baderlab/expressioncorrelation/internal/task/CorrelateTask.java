@@ -8,8 +8,8 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskMonitor;
 
-/**
- * Copyright (c) 2007
+/*
+ * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
  * * Code written by: Shirley Hui
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker
@@ -37,15 +37,7 @@ import org.cytoscape.work.TaskMonitor;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * *
- * * User: Shirley Hui
- * * Date: Apr 4, 2007
- * * Time: 3:35:11 April 7, 2004
- * * Description: CorrelateTask
- * *
- * *
  */
-
 
 /**
  * This class represents a task that calls methods to calculate a correlation csNetwork

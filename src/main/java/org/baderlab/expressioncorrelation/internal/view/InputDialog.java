@@ -37,9 +37,10 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.BasicCollapsiblePanel;
 
-/* * Copyright (c) 2004 Memorial Sloan-Kettering Cancer Center
+/*
+ * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center
  * *
- * * Code written by: Elena Potylitsine
+ * * Code written by: Christian Lopes
  * * Authors: Gary Bader, Elena Potylitsine, Chris Sander, Weston Whitaker
  * *
  * * This library is free software; you can redistribute it and/or modify it
@@ -65,18 +66,8 @@ import org.cytoscape.util.swing.BasicCollapsiblePanel;
  * * You should have received a copy of the GNU Lesser General Public License
  * * along with this library; if not, write to the Free Software Foundation,
  * * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- * *
- * * User: Elena Potylitsine
- * * Date: Jul 7, 2004
- * * Time: 3:35:11 PM
- * * Description: CorrelateHistogramDialog displayes the expression data distribution.
- * * In the histogram window the user can select the low and high cutoffs by manually
- * * typing them into the appropriate "Cutoff" text boxes.
- * * The user can choose to use only one set of cutoffs by deselecting the "low" or "high" checkbox.
- * * The user can select the number or percent of interactions to be displayed
- * * by typing into the "Enter" text box and choosing "Number of Interactions" or "Percent of Interactions".
-*/
-
+ */
+ 
 public class InputDialog extends JDialog {
 
 	private static final long serialVersionUID = 7601013329457450675L;
